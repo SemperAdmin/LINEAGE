@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LINEAGE Document Provenance Inspection</title>
+<style>
+/* ==========================================================================
+   LINEAGE, styled on the Semper Admin Portal token set v1.2 with the
+   accessibility corrections from the 24 Aug 2026 audit applied inline.
+
+   Deviations from the Semper guide, forced by LINEAGE constraints:
+   - No font package, no import, no remote face. Constraint 1 and 2 forbid
+     them. Bebas Neue is replaced by a system condensed stack.
+   - The spacing ladder is the corrected one, 4/8/12/16/20/24/32/40/48/56/64,
+     matching what the guide's own table uses.
+   - Focus sets no border-radius, so a chip keeps its own geometry on focus.
+   - Card shadows are aliased so the dark-mode override reaches them.
+   ========================================================================== */
+
+:root {
+  /* Brand */
+  --color-usmc-scarlet: #B82230;
+  --color-usmc-scarlet-700: #971826;
+  --color-usmc-scarlet-300: #D14150;
+  --color-marine-blue: #0F1F3D;
+  --color-marine-blue-300: #2A3D60;
+  --color-marine-blue-100: #6B9BD2;
+  --color-parchment: #F2E5BE;
+  --color-brass: #B89042;
+  --color-brass-300: #D4AF67;
+
+  /* Semantic, light */
+  --color-background: #F8F4E8;
+  --color-bg-elev: #FFFCF4;
+  --color-bg-sunken: #EFE9D6;
+  --color-foreground: #1A1610;
+  --color-card: #FFFCF4;
+  --color-primary: #B82230;
+  --color-primary-foreground: #FFFCF4;
+  --color-primary-text: #B82230;
+  --color-secondary: #0F1F3D;
+  --color-secondary-foreground: #F2E5BE;
+  --color-muted: #F2EBD4;
+  --color-muted-foreground: #5C5340;
+  --color-subtle-foreground: #726852;      /* corrected, was #8A7E63 at 3.64:1 */
+  --color-accent: #B89042;
+  --color-accent-text: #81652E;            /* corrected, brass as text was 2.69:1 */
+  --color-accent-foreground: #1A1610;
+  --color-destructive: #B83232;
+  --color-border: #DDD3B5;
+  --color-border-strong: #C9BD96;
+  --color-border-input: #96854D;           /* corrected, 3.00:1 */
+  --color-ring: #B82230;
+  --color-surface: #FFFCF4;
+  --color-surface-2: #F2EBD4;
+  --color-surface-3: #E7DFC2;
+
+  --color-status-fresh: #27774D;           /* corrected */
+  --color-status-aging: #955C17;           /* corrected */
+  --color-status-stale: #B83232;
+  --color-status-info: #2F5FA8;
+
+  /* Type */
+  --font-display: "Bahnschrift", "DIN Alternate", "Arial Narrow", "Helvetica Neue Condensed", "Liberation Sans Narrow", system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "Cascadia Code", Menlo, Consolas, monospace;
+
+  --text-xs: .75rem;
+  --text-sm: .8125rem;
+  --text-base: .9375rem;
+  --text-prose: 1rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.375rem;
+  --text-3xl: 1.75rem;
+  --text-4xl: 2.25rem;
+
+  /* Spacing, corrected ladder */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-14: 56px; --sp-16: 64px;
+
+  /* Radii */
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-card: 8px;
+  --radius-button: 6px;
+  --radius-chip: 9999px;
+
+  /* Shadows, aliased so the dark override reaches cards */
+  --shadow-sm: 0 1px 2px rgba(26,22,16,.05), 0 0 0 1px rgba(26,22,16,.04);
+  --shadow-md: 0 2px 4px rgba(26,22,16,.06), 0 10px 28px rgba(26,22,16,.08);
+  --shadow-lg: 0 18px 52px rgba(26,22,16,.20);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-strong: var(--shadow-md);
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-default: 180ms;
+  --motion-slow: 240ms;
+
+  /* Layout */
+  --topbar-h: 56px;
+  --topbar-h-mobile: 48px;
+}
+
+html.dark {
+  --color-background: #0A1424;
+  --color-bg-elev: #11203F;
+  --color-bg-sunken: #060E1A;
+  --color-foreground: #F2E5BE;
+  --color-card: #11203F;
+  --color-primary: #C93A48;                /* corrected surface, 4.90:1 label */
+  --color-primary-foreground: #FFFCF4;     /* corrected, was #060E1A at 4.22:1 */
+  --color-primary-text: #D9616D;           /* corrected split, 4.52:1 as text */
+  --color-secondary: #2A3D60;
+  --color-secondary-foreground: #F2E5BE;
+  --color-muted: #182A4D;
+  --color-muted-foreground: #B5A988;
+  --color-subtle-foreground: #92876C;      /* corrected, was 4.08:1 on card */
+  --color-accent: #D4AF67;
+  --color-accent-text: #D4AF67;
+  --color-accent-foreground: #060E1A;
+  --color-destructive: #D56565;            /* corrected, was #B83232 at 2.72:1 */
+  --color-border: #233A5C;
+  --color-border-strong: #34507A;
+  --color-border-input: #466CA4;           /* corrected, 3.03:1 */
+  --color-ring: #CD2635;                   /* corrected, was 2.54:1 on card */
+  --color-surface: #11203F;
+  --color-surface-2: #182A4D;
+  --color-surface-3: #1F345C;
+
+  --color-status-fresh: #329962;           /* corrected */
+  --color-status-aging: #C97D1F;
+  --color-status-stale: #D56565;           /* corrected */
+  --color-status-info: #5988D1;            /* corrected */
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4), 0 0 0 1px rgba(242,229,190,.06);
+  --shadow-md: 0 2px 4px rgba(0,0,0,.4), 0 10px 28px rgba(0,0,0,.45);
+  --shadow-lg: 0 18px 52px rgba(0,0,0,.55);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font: var(--text-base)/1.6 var(--font-body);
+  transition: background var(--motion-slow) ease, color var(--motion-slow) ease;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: var(--sp-6) var(--sp-5) var(--sp-16); }
+
+/* ---- Floating pill topbar ------------------------------------------------ */
+.topbar {
+  position: sticky; top: var(--sp-3); z-index: 20;
+  display: flex; align-items: center; gap: var(--sp-3);
+  height: var(--topbar-h);
+  margin: 0 auto var(--sp-6);
+  padding: 0 var(--sp-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elev);
+  box-shadow: var(--shadow-md);
+}
+@supports (backdrop-filter: blur(14px)) {
+  .topbar {
+    background: color-mix(in srgb, var(--color-bg-elev) 88%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+}
+.topbar .mark {
+  font: 400 var(--text-2xl)/1 var(--font-display);
+  letter-spacing: .16em; text-transform: uppercase;
+}
+.topbar .sep { flex: 1; }
+.topbar .classline {
+  font: 700 var(--text-xs)/1 var(--font-body);
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--color-muted-foreground);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-chip);
+  padding: 5px 12px;
+}
+.topbar .brandmark {
+  width: 40px; height: 40px; flex: none;
+  display: block; object-fit: contain;
+}
+.topbar .brand { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.topbar .byline {
+  font: 700 10px/1 var(--font-body);
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+}
+@media (max-width: 700px) {
+  .topbar { height: var(--topbar-h-mobile); padding: 0 var(--sp-4); gap: var(--sp-2); }
+  .topbar .classline { display: none; }
+  .topbar .brandmark { width: 32px; height: 32px; }
+  .topbar .byline { font-size: 9px; letter-spacing: .14em; }
+}
+
+/* ---- Hero ---------------------------------------------------------------- */
+header.site { padding: var(--sp-6) 0 var(--sp-8); }
+header.site h1 {
+  margin: 0;
+  font: 400 clamp(2.25rem, 7vw, 3.5rem)/1.05 var(--font-display);
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.gradient-accent {
+  background: linear-gradient(95deg,
+    var(--color-usmc-scarlet) 0%, var(--color-usmc-scarlet-300) 35%,
+    var(--color-brass-300) 75%, var(--color-brass) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+header.site p.lede {
+  margin: var(--sp-3) 0 0;
+  max-width: 68ch;
+  font-size: var(--text-prose);
+  line-height: 1.7;
+  color: var(--color-muted-foreground);
+}
+
+/* ---- Ambient bloom ------------------------------------------------------- */
+.ambient-bloom { position: relative; isolation: isolate; }
+.ambient-bloom::before {
+  content: ""; position: absolute; top: -40px; left: 50%;
+  transform: translateX(-50%);
+  width: 70%; max-width: 720px; height: 320px;
+  background: radial-gradient(ellipse at center,
+    rgba(184,34,48,.12) 0%, rgba(42,61,96,.10) 40%, transparent 75%);
+  pointer-events: none; z-index: -1; filter: blur(20px);
+  opacity: 0; transition: opacity var(--motion-slow) ease;
+}
+html.dark .ambient-bloom::before { opacity: 1; }
+
+/* ---- Panels -------------------------------------------------------------- */
+section.panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-6);
+  margin: 0 0 var(--sp-6);
+}
+section.panel[hidden] { display: none; }
+h2.panel-title {
+  margin: 0 0 var(--sp-1);
+  font: 700 var(--text-sm)/1.2 var(--font-body);
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--color-foreground);
+}
+h2.panel-title .num {
+  color: var(--color-accent-text);
+  margin-right: var(--sp-2);
+}
+p.panel-note {
+  margin: 0 0 var(--sp-5);
+  max-width: 76ch;
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+h3 { font: 600 var(--text-lg)/1.2 var(--font-body); margin: var(--sp-6) 0 var(--sp-2); letter-spacing: -.005em; }
+h3:first-of-type { margin-top: var(--sp-2); }
+
+/* ---- Drop zone ----------------------------------------------------------- */
+#drop {
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  padding: var(--sp-8) var(--sp-5);
+  text-align: center;
+  transition: border-color var(--motion-fast) ease, background var(--motion-fast) ease;
+}
+#drop.hot { border-color: var(--color-primary); background: var(--color-surface-3); }
+#drop p { margin: 0 0 var(--sp-1); }
+#drop .sub { font-size: var(--text-sm); color: var(--color-muted-foreground); margin-bottom: var(--sp-4); }
+input[type=file] { font: inherit; color: inherit; max-width: 100%; }
+
+/* ---- Controls ------------------------------------------------------------ */
+button {
+  font: 600 var(--text-base)/1 var(--font-body);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border: 1px solid transparent;
+  border-radius: var(--radius-button);
+  padding: 11px var(--sp-4);
+  cursor: pointer;
+  transition: filter var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+button.secondary {
+  background: var(--color-surface-2);
+  color: var(--color-foreground);
+  border-color: var(--color-border-strong);
+}
+button.ghost {
+  background: transparent; color: var(--color-foreground);
+  border-color: var(--color-border-strong); padding: 8px var(--sp-3);
+  font-size: var(--text-sm);
+}
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:hover:not(:disabled) { filter: brightness(1.08); }
+button:active:not(:disabled) { transform: translateY(1px); }
+
+:focus-visible {
+  outline: 3px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* ---- Stat tiles ---------------------------------------------------------- */
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 18px; margin: var(--sp-5) 0 0;
+}
+.stat {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-2);
+  padding: var(--sp-5);
+  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+.stat:hover { transform: translateY(-2px); box-shadow: var(--shadow-card-strong); }
+.stat .ico { width: 32px; height: 32px; display: block; color: var(--color-accent-text); }
+.stat .num {
+  font: 400 44px/1 var(--font-display);
+  letter-spacing: .02em;
+  margin: var(--sp-2) 0 var(--sp-1);
+  color: var(--color-foreground);
+}
+.stat .num.sm { font-size: 22px; line-height: 1.2; }
+.stat .eyebrow {
+  font: 700 11px/1 var(--font-body);
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--color-muted-foreground);
+}
+.stat .meta { font-size: var(--text-xs); color: var(--color-subtle-foreground); margin-top: var(--sp-1); }
+.stat.signal { border-color: var(--color-accent); background: var(--color-surface-3); }
+.stat.limit { border-color: var(--color-status-aging); }
+
+/* ---- File card ----------------------------------------------------------- */
+.filecard {
+  display: grid; grid-template-columns: max-content 1fr; gap: var(--sp-1) var(--sp-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--sp-4);
+  background: var(--color-surface-2);
+  font-size: var(--text-sm);
+  margin-top: var(--sp-5);
+}
+.filecard dt { color: var(--color-muted-foreground); font-weight: 600; }
+.filecard dd {
+  margin: 0; word-break: break-all;
+  font: 500 var(--text-sm)/1.5 var(--font-mono);
+  color: var(--color-foreground);
+}
+
+/* ---- Tables -------------------------------------------------------------- */
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin-top: var(--sp-1); }
+caption {
+  text-align: left; padding: var(--sp-5) 0 var(--sp-2);
+  font: 700 var(--text-sm)/1.2 var(--font-body);
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+th, td { text-align: left; vertical-align: top; padding: 10px var(--sp-3); border-bottom: 1px solid var(--color-border); }
+th {
+  background: var(--color-surface-2);
+  font: 700 11px/1.2 var(--font-body);
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+td.val { font: 500 var(--text-sm)/1.55 var(--font-mono); word-break: break-word; white-space: pre-wrap; }
+tr.ai td { background: var(--color-surface-3); }
+tr.ai td:first-child { box-shadow: inset 4px 0 0 var(--color-accent); }
+.tag {
+  display: inline-block; font: 700 10px/1.6 var(--font-body);
+  letter-spacing: .1em; text-transform: uppercase;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent-text);
+  border-radius: var(--radius-chip);
+  padding: 1px 9px;
+}
+.enc { color: var(--color-subtle-foreground); }
+
+/* ---- Verdict ------------------------------------------------------------- */
+.verdict {
+  border-left: 5px solid var(--color-status-info);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--color-surface-2);
+  padding: var(--sp-3) var(--sp-4);
+  margin: var(--sp-5) 0 0;
+}
+.verdict.unknown { border-left-color: var(--color-status-aging); }
+.verdict h4 { margin: 0 0 var(--sp-1); font: 700 var(--text-lg)/1.3 var(--font-body); }
+.verdict p { margin: 0; font-size: var(--text-sm); color: var(--color-muted-foreground); max-width: 76ch; }
+
+ul.limits { margin: var(--sp-2) 0 0; padding-left: var(--sp-5); font-size: var(--text-sm); }
+ul.limits li { margin: var(--sp-1) 0; font: 500 var(--text-sm)/1.5 var(--font-mono); color: var(--color-status-aging); }
+
+/* ---- Forms --------------------------------------------------------------- */
+fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--sp-4) var(--sp-4) var(--sp-5);
+  margin: 0 0 var(--sp-5);
+}
+fieldset.derived { border-color: var(--color-status-info); background: var(--color-surface-2); }
+fieldset.human { border-color: var(--color-status-aging); background: var(--color-surface-2); }
+legend {
+  font: 700 var(--text-xs)/1 var(--font-body);
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 0 var(--sp-2);
+}
+legend .count { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--color-muted-foreground); }
+p.setnote { margin: 0 0 var(--sp-4); font-size: var(--text-sm); color: var(--color-muted-foreground); max-width: 76ch; }
+p.origin { margin: 0; font-size: var(--text-xs); line-height: 1.45; color: var(--color-muted-foreground); }
+p.origin.edited { color: var(--color-status-info); font-weight: 600; }
+p.origin.blocked { color: var(--color-status-aging); }
+.summary {
+  border-left: 5px solid var(--color-status-info);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--color-surface-2);
+  padding: var(--sp-3) var(--sp-4);
+  margin: 0 0 var(--sp-5);
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+.summary strong { color: var(--color-foreground); }
+
+.formgrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4) var(--sp-5); }
+@media (max-width: 760px) { .formgrid { grid-template-columns: 1fr; } .filecard { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: var(--sp-1); }
+.field.full { grid-column: 1 / -1; }
+label { font: 600 var(--text-sm)/1.4 var(--font-body); }
+.req { color: var(--color-primary-text); font-weight: 700; }
+
+input[type=text], input[type=date], select, textarea {
+  font: var(--text-base)/1.4 var(--font-body);
+  padding: 10px var(--sp-3);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elev);
+  color: var(--color-foreground);
+  min-width: 0;
+}
+input::placeholder { color: var(--color-subtle-foreground); }
+.checkrow { display: flex; gap: var(--sp-3); align-items: flex-start; grid-column: 1 / -1; margin-top: var(--sp-1); }
+.checkrow label { font-weight: 400; font-size: var(--text-sm); max-width: 76ch; }
+input[type=checkbox] { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--color-primary); }
+
+/* ---- Output blocks ------------------------------------------------------- */
+pre.out {
+  background: var(--color-bg-sunken);
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  overflow: auto;
+  font: 500 var(--text-sm)/1.55 var(--font-mono);
+  white-space: pre-wrap; word-break: break-word;
+  margin: var(--sp-3) 0 0; max-height: 520px;
+}
+textarea.fallback {
+  width: 100%; min-height: 160px;
+  font: 500 var(--text-sm)/1.5 var(--font-mono);
+  margin-top: var(--sp-3);
+}
+.btnrow { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-4); align-items: center; }
+.status { font-size: var(--text-sm); color: var(--color-muted-foreground); min-height: 1.4em; }
+.note { font-size: var(--text-sm); color: var(--color-muted-foreground); max-width: 76ch; }
+
+/* ---- Footer -------------------------------------------------------------- */
+footer.site {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+}
+
+.skip { position: absolute; left: -9999px; }
+.skip:focus {
+  position: fixed; left: var(--sp-2); top: var(--sp-2);
+  background: var(--color-bg-elev); color: var(--color-foreground);
+  padding: var(--sp-2) var(--sp-3);
+  border: 2px solid var(--color-ring); border-radius: var(--radius-sm);
+  z-index: 40;
+}
+
+::selection { background: var(--color-brass); color: #0F0C09; }
+
+/* ---- Motion gate --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Print --------------------------------------------------------------- */
+@media print {
+  body { background: #fff; color: #000; }
+  .noprint, .topbar, .ambient-bloom::before { display: none !important; }
+  section.panel { border: none; box-shadow: none; padding: 0; margin: 0 0 var(--sp-3); background: #fff; }
+  pre.out { background: #fff; color: #000; border: 1px solid #000; max-height: none; }
+}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#panel1">Skip to inspection panel</a>
+<div class="wrap">
+
+<div class="topbar noprint">
+  <img class="brandmark" src="data:image/png;base64,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" alt="" width="40" height="40" decoding="async">
+  <span class="brand">
+    <span class="mark">Lineage</span>
+    <span class="byline">by Semper Admin</span>
+  </span>
+  <span class="sep"></span>
+  <span class="classline">Unclassified</span>
+  <button type="button" class="ghost" id="themetoggle" aria-pressed="true">Light theme</button>
+</div>
+
+<header class="site ambient-bloom">
+  <h1><span class="gradient-accent">Provenance</span><br>Inspection</h1>
+  <p class="lede">LINEAGE reads a document and reports what it already says about its own origin. Read-only. Nothing is uploaded, nothing is stored, nothing in your file is changed.</p>
+</header>
+
+<section class="panel noprint" id="panel1">
+  <h2 class="panel-title"><span class="num">Module 1</span>Inspect</h2>
+  <p class="panel-note">Select a file. It is read into memory in this browser tab, parsed, and discarded when the tab closes. No network request is made at any point.</p>
+
+  <div id="drop">
+    <p><strong>Drop a file here</strong></p>
+    <p class="sub">Or choose one. Supported for parsing: JPEG, PNG, Word, Excel, PowerPoint, PDF, plain text and markdown.</p>
+    <input type="file" id="picker" aria-label="Choose a file to inspect">
+  </div>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+
+  <div id="results" hidden>
+    <div class="stat-grid" id="stats"></div>
+    <dl class="filecard" id="filecard"></dl>
+    <div id="verdict"></div>
+    <div id="findings"></div>
+    <div id="limits"></div>
+  </div>
+</section>
+
+<section class="panel noprint" id="panel2" hidden>
+  <h2 class="panel-title"><span class="num">Module 2</span>Label</h2>
+  <p class="panel-note">This module asserts nothing about AI involvement on its own. It fills what the document declares about itself, names the source of every filled value, and leaves the human judgments empty. It formats a generative AI use annotation under NAVMC 5239.1 of 4 Dec 24, paragraph 4.b.(5).</p>
+
+  <div class="summary" id="derivesummary"></div>
+
+  <form id="labelform" novalidate>
+    <fieldset class="derived">
+      <legend>Read from the file <span class="count" id="derivedcount"></span></legend>
+      <p class="setnote">LINEAGE filled these from data the document carries about itself. Each field names its source. Change any value and the source note switches to operator entered, and the attestation records the change.</p>
+      <div class="formgrid">
+        <div class="field full">
+          <label for="f-title">Document title or subject line</label>
+          <input type="text" id="f-title" autocomplete="off">
+          <p class="origin" id="o-title"></p>
+        </div>
+        <div class="field">
+          <label for="f-docdate">Document date</label>
+          <input type="date" id="f-docdate">
+          <p class="origin" id="o-docdate"></p>
+        </div>
+        <div class="field">
+          <label for="f-revdate">Review date</label>
+          <input type="date" id="f-revdate">
+          <p class="origin" id="o-revdate"></p>
+        </div>
+        <div class="field full">
+          <label for="f-tool">GenAI tool and version used</label>
+          <input type="text" id="f-tool" autocomplete="off" list="toolcandidates" placeholder="required once scope is set">
+          <datalist id="toolcandidates"></datalist>
+          <p class="origin" id="o-tool"></p>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="human">
+      <legend>Only you can supply this <span class="count">4 fields</span></legend>
+      <p class="setnote">LINEAGE has no basis for any of the following. Contribution scope and portion affected are judgments about your own work, not properties of the file. Section 0.3 forbids this tool from deciding whether a passage was written by AI, so it does not guess here.</p>
+      <div class="formgrid">
+        <div class="field">
+          <label for="f-scope">Contribution scope <span class="req" aria-hidden="true">required</span></label>
+          <select id="f-scope" required>
+            <option value="none">none</option>
+            <option value="drafting assistance">drafting assistance</option>
+            <option value="full initial draft">full initial draft</option>
+            <option value="editing and proofreading">editing and proofreading</option>
+            <option value="data analysis">data analysis</option>
+            <option value="translation">translation</option>
+            <option value="image or graphic generation">image or graphic generation</option>
+          </select>
+          <p class="origin blocked">Not derivable. LINEAGE never infers AI involvement from file contents.</p>
+        </div>
+        <div class="field">
+          <label for="f-portion">Portion affected <span class="req" aria-hidden="true">required</span></label>
+          <input type="text" id="f-portion" autocomplete="off" placeholder="e.g. paragraphs 3 through 5">
+          <p class="origin blocked">Not derivable. No metadata field records which passages a tool touched.</p>
+        </div>
+        <div class="field">
+          <label for="f-reviewer">Human reviewer, rank and name <span class="req" aria-hidden="true">required</span></label>
+          <input type="text" id="f-reviewer" autocomplete="off" list="namecandidates" placeholder="e.g. GySgt J. A. Rivera">
+          <datalist id="namecandidates"></datalist>
+          <p class="origin blocked" id="o-reviewer">Not derivable. An author field names who edited the file, not who reviewed the output.</p>
+        </div>
+        <div class="field">
+          <label for="f-operator">Operator running this inspection</label>
+          <input type="text" id="f-operator" autocomplete="off" list="namecandidates" placeholder="e.g. Sgt M. T. Alvarez">
+          <p class="origin blocked">Not derivable and not verified. Recorded in the attestation as self-asserted.</p>
+        </div>
+        <div class="checkrow">
+          <input type="checkbox" id="f-verify">
+          <label for="f-verify">I confirm the outputs were reviewed for accuracy and suitability prior to use, per NAVMC 5239.1 paragraph 4.b.(4). <span class="req">This is a human act. LINEAGE cannot check it and will not pre-check it.</span></label>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="btnrow">
+      <button type="submit" id="genlabel">Generate annotation</button>
+      <span class="status" id="labelstatus" role="status" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <div id="labelout" hidden>
+    <pre class="out" id="labeltext"></pre>
+    <div class="btnrow noprint">
+      <button type="button" class="secondary" id="copylabel">Copy annotation</button>
+    </div>
+    <textarea class="fallback noprint" id="labelfallback" hidden aria-label="Annotation text for manual selection and copy" readonly></textarea>
+  </div>
+</section>
+
+<section class="panel" id="panel3" hidden>
+  <h2 class="panel-title"><span class="num">Module 3</span>Attest</h2>
+  <p class="panel-note noprint">Produces a hash-anchored record of this inspection. The record is delivered to your clipboard or to print. No file is written and no download occurs.</p>
+
+  <p class="note noprint" id="attestprefill"></p>
+  <div class="btnrow noprint">
+    <button type="button" id="genattest">Generate attestation</button>
+    <span class="status" id="atteststatus" role="status" aria-live="polite"></span>
+  </div>
+
+  <div id="attestout" hidden>
+    <pre class="out" id="attesttext"></pre>
+    <div class="btnrow noprint">
+      <button type="button" class="secondary" id="copyattest">Copy attestation</button>
+      <button type="button" class="secondary" id="printattest">Print</button>
+    </div>
+    <textarea class="fallback noprint" id="attestfallback" hidden aria-label="Attestation text for manual selection and copy" readonly></textarea>
+  </div>
+</section>
+
+<footer class="site">
+  <p>LINEAGE version <span id="verlabel"></span>. Document provenance inspection. Read-only, no network request, no stored state. The inspected file is never modified, never uploaded, and never written back. Absence of findings is not evidence of absence of AI involvement.</p>
+  <p id="envline" class="note"></p>
+</footer>
+
+</div>
+<script>
+"use strict";
+(function () {
+
+var VERSION = "1.1.0-rc2";
+document.getElementById("verlabel").textContent = VERSION;
+
+/* ============================================================
+   State. All of it lives here and dies with the tab.
+   ============================================================ */
+var STATE = {
+  file: null,
+  buffer: null,
+  bytes: null,
+  sha256: "",
+  hashImpl: "",
+  format: "",
+  findings: [],
+  limits: [],
+  label: "",
+  loadHash: ""
+};
+
+/* ============================================================
+   Small helpers
+   ============================================================ */
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function el(id) { return document.getElementById(id); }
+
+function addFinding(category, source, field, value, aiSignal, rawValue) {
+  if (value === undefined || value === null) return;
+  var v = String(value);
+  if (v.length > 4000) v = v.slice(0, 4000) + " [truncated for display, " + v.length + " chars total]";
+  STATE.findings.push({
+    category: category,
+    source: source,
+    field: field,
+    value: v,
+    aiSignal: !!aiSignal,
+    rawValue: rawValue === undefined ? "" : String(rawValue)
+  });
+}
+function addLimit(text) {
+  if (STATE.limits.indexOf(text) === -1) STATE.limits.push(text);
+}
+
+function latin1(bytes, start, len) {
+  var end = Math.min(bytes.length, start + len);
+  var out = "";
+  for (var i = start; i < end; i += 8192) {
+    var stop = Math.min(end, i + 8192);
+    out += String.fromCharCode.apply(null, bytes.subarray(i, stop));
+  }
+  return out;
+}
+function utf8(bytes, start, len) {
+  var end = Math.min(bytes.length, start + len);
+  try {
+    return new TextDecoder("utf-8", { fatal: false }).decode(bytes.subarray(start, end));
+  } catch (e) {
+    return latin1(bytes, start, end - start);
+  }
+}
+function utf16be(bytes, start, len) {
+  var end = Math.min(bytes.length, start + len);
+  var out = "";
+  for (var i = start; i + 1 < end; i += 2) {
+    out += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]);
+  }
+  return out;
+}
+function asciiBytes(s) {
+  var a = new Uint8Array(s.length);
+  for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i) & 0xff;
+  return a;
+}
+/* Byte-level search. Never materializes the buffer as a string. */
+function indexOfBytes(hay, needle, from) {
+  var n = needle.length, h = hay.length, first = needle[0];
+  if (n === 0) return -1;
+  for (var i = Math.max(0, from | 0); i <= h - n; i++) {
+    if (hay[i] !== first) continue;
+    var j = 1;
+    while (j < n && hay[i + j] === needle[j]) j++;
+    if (j === n) return i;
+  }
+  return -1;
+}
+function lastIndexOfBytes(hay, needle, fromEnd) {
+  var n = needle.length, start = (fromEnd === undefined ? hay.length : fromEnd) - n;
+  var first = needle[0];
+  for (var i = start; i >= 0; i--) {
+    if (hay[i] !== first) continue;
+    var j = 1;
+    while (j < n && hay[i + j] === needle[j]) j++;
+    if (j === n) return i;
+  }
+  return -1;
+}
+function findAllBytes(hay, needle, cap) {
+  var out = [], at = 0, guard = 0;
+  while (guard++ < 100000) {
+    at = indexOfBytes(hay, needle, at);
+    if (at < 0) break;
+    out.push(at);
+    if (out.length >= (cap || 200)) break;
+    at += 1;
+  }
+  return out;
+}
+
+/* ============================================================
+   Hashing. crypto.subtle first, hand-written fallback second.
+   No third-party code, per constraint 6.
+   ============================================================ */
+var K256 = [
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+];
+function sha256Manual(bytes) {
+  var h = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var len = bytes.length;
+  var withPad = (((len + 9) >> 6) + 1) << 6;
+  var msg = new Uint8Array(withPad);
+  msg.set(bytes);
+  msg[len] = 0x80;
+  var bitLenHi = Math.floor(len / 536870912);
+  var bitLenLo = (len << 3) >>> 0;
+  var dv = new DataView(msg.buffer);
+  dv.setUint32(withPad - 8, bitLenHi, false);
+  dv.setUint32(withPad - 4, bitLenLo, false);
+  var w = new Int32Array(64);
+  for (var off = 0; off < withPad; off += 64) {
+    for (var i = 0; i < 16; i++) w[i] = dv.getInt32(off + i * 4, false);
+    for (i = 16; i < 64; i++) {
+      var x = w[i - 15], y = w[i - 2];
+      var s0 = ((x >>> 7) | (x << 25)) ^ ((x >>> 18) | (x << 14)) ^ (x >>> 3);
+      var s1 = ((y >>> 17) | (y << 15)) ^ ((y >>> 19) | (y << 13)) ^ (y >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+    }
+    var a = h[0], b = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], hh = h[7];
+    for (i = 0; i < 64; i++) {
+      var S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+      var ch = (e & f) ^ (~e & g);
+      var t1 = (hh + S1 + ch + K256[i] + w[i]) | 0;
+      var S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+      var maj = (a & b) ^ (a & c) ^ (b & c);
+      var t2 = (S0 + maj) | 0;
+      hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    h[0] = (h[0] + a) | 0; h[1] = (h[1] + b) | 0; h[2] = (h[2] + c) | 0; h[3] = (h[3] + d) | 0;
+    h[4] = (h[4] + e) | 0; h[5] = (h[5] + f) | 0; h[6] = (h[6] + g) | 0; h[7] = (h[7] + hh) | 0;
+  }
+  var hex = "";
+  for (i = 0; i < 8; i++) hex += ("00000000" + (h[i] >>> 0).toString(16)).slice(-8);
+  return hex;
+}
+async function sha256(bytes) {
+  var subtle = (typeof crypto !== "undefined" && crypto && crypto.subtle) ? crypto.subtle : null;
+  if (subtle && typeof subtle.digest === "function") {
+    try {
+      var d = await subtle.digest("SHA-256", bytes);
+      var v = new Uint8Array(d), hex = "";
+      for (var i = 0; i < v.length; i++) hex += ("0" + v[i].toString(16)).slice(-2);
+      return { hex: hex, impl: "crypto.subtle" };
+    } catch (e) { /* fall through to the in-page implementation */ }
+  }
+  return { hex: sha256Manual(bytes), impl: "in-page SHA-256 (crypto.subtle unavailable)" };
+}
+
+/* ============================================================
+   Inflation. DecompressionStream only. No third-party code.
+   ============================================================ */
+function inflationAvailable() { return typeof DecompressionStream === "function"; }
+async function inflate(bytes, format) {
+  var ds = new DecompressionStream(format);
+  var writer = ds.writable.getWriter();
+  writer.write(bytes).catch(function () {});
+  writer.close().catch(function () {});
+  var reader = ds.readable.getReader();
+  var chunks = [], total = 0;
+  for (;;) {
+    var r = await reader.read();
+    if (r.done) break;
+    chunks.push(r.value);
+    total += r.value.length;
+    if (total > 64 * 1024 * 1024) { try { reader.cancel(); } catch (e) {} break; }
+  }
+  var out = new Uint8Array(total), o = 0;
+  for (var i = 0; i < chunks.length; i++) { out.set(chunks[i], o); o += chunks[i].length; }
+  return out;
+}
+
+/* ============================================================
+   Format detection. Magic bytes only. The extension is untrusted.
+   ============================================================ */
+var SIGS = [
+  { id: "jpeg",  name: "JPEG image",              sig: [0xFF, 0xD8, 0xFF] },
+  { id: "png",   name: "PNG image",               sig: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
+  { id: "zip",   name: "ZIP container",           sig: [0x50, 0x4B, 0x03, 0x04] },
+  { id: "zipe",  name: "ZIP container, empty",    sig: [0x50, 0x4B, 0x05, 0x06] },
+  { id: "pdf",   name: "PDF document",            sig: [0x25, 0x50, 0x44, 0x46, 0x2D] },
+  { id: "gif",   name: "GIF image",               sig: [0x47, 0x49, 0x46, 0x38] },
+  { id: "tiff",  name: "TIFF image",              sig: [0x49, 0x49, 0x2A, 0x00] },
+  { id: "tiff",  name: "TIFF image",              sig: [0x4D, 0x4D, 0x00, 0x2A] },
+  { id: "bmp",   name: "BMP image",               sig: [0x42, 0x4D] }
+];
+function startsWith(bytes, sig, at) {
+  at = at || 0;
+  if (bytes.length < at + sig.length) return false;
+  for (var i = 0; i < sig.length; i++) if (bytes[at + i] !== sig[i]) return false;
+  return true;
+}
+function detectFormat(bytes) {
+  if (bytes.length === 0) return { id: "empty", name: "empty file, zero bytes" };
+  for (var i = 0; i < SIGS.length; i++) {
+    if (startsWith(bytes, SIGS[i].sig)) return { id: SIGS[i].id, name: SIGS[i].name };
+  }
+  /* RIFF/WEBP and ISO base media (HEIC, AVIF, MP4, MOV) live at non-zero offsets. */
+  if (startsWith(bytes, [0x52, 0x49, 0x46, 0x46]) && startsWith(bytes, [0x57, 0x45, 0x42, 0x50], 8)) {
+    return { id: "webp", name: "WebP image" };
+  }
+  if (startsWith(bytes, [0x66, 0x74, 0x79, 0x70], 4)) {
+    var brand = latin1(bytes, 8, 4);
+    return { id: "isobmff", name: "ISO base media container, brand " + brand };
+  }
+  /* A PDF header is permitted within the first 1024 bytes rather than only at zero. */
+  var pdfAt = indexOfBytes(bytes.subarray(0, Math.min(bytes.length, 1024)), asciiBytes("%PDF-"), 0);
+  if (pdfAt > 0) return { id: "pdf", name: "PDF document, header at offset " + pdfAt };
+  return { id: "text", name: "no binary signature, treated as text" };
+}
+
+/* ============================================================
+   TIFF / EXIF reader.
+   Takes an explicit TIFF start offset. Defect H-2 in the audit:
+   JPEG APP1 needs 6, PNG eXIf needs 0. One parser, one parameter.
+   ============================================================ */
+var EXIF_TAGS = {
+  0x010F: "Make", 0x0110: "Model", 0x0131: "Software", 0x013B: "Artist",
+  0x8298: "Copyright", 0x0132: "DateTime", 0x010E: "ImageDescription",
+  0x8769: "ExifIFDPointer", 0x8825: "GPSInfoIFDPointer", 0x9C9B: "XPTitle",
+  0x9C9C: "XPComment", 0x9C9D: "XPAuthor", 0x9C9E: "XPKeywords", 0x9C9F: "XPSubject"
+};
+var EXIF_SUB_TAGS = {
+  0x9003: "DateTimeOriginal", 0x9004: "DateTimeDigitized", 0x9286: "UserComment",
+  0xA420: "ImageUniqueID", 0xA430: "CameraOwnerName", 0xA431: "BodySerialNumber",
+  0xA433: "LensMake", 0xA434: "LensModel"
+};
+var TYPE_SIZE = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 6: 1, 7: 1, 8: 2, 9: 4, 10: 8, 11: 4, 12: 8 };
+
+function readTiff(bytes, tiffStart, sourceLabel) {
+  if (tiffStart + 8 > bytes.length) { addLimit("exif-header-truncated in " + sourceLabel); return; }
+  var b0 = bytes[tiffStart], b1 = bytes[tiffStart + 1], little;
+  if (b0 === 0x49 && b1 === 0x49) little = true;
+  else if (b0 === 0x4D && b1 === 0x4D) little = false;
+  else { addLimit("exif-byte-order-unrecognized in " + sourceLabel); return; }
+  var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+  function u16(o) { return dv.getUint16(o, little); }
+  function u32(o) { return dv.getUint32(o, little); }
+  if (u16(tiffStart + 2) !== 42) { addLimit("exif-magic-mismatch in " + sourceLabel); return; }
+  var ifd0 = tiffStart + u32(tiffStart + 4);
+
+  function readEntries(ifdOffset, map, label, depth) {
+    if (depth > 3) return;
+    if (ifdOffset + 2 > bytes.length || ifdOffset < tiffStart) {
+      addLimit("exif-ifd-offset-out-of-range in " + sourceLabel); return;
+    }
+    var count = u16(ifdOffset);
+    if (count > 4096) { addLimit("exif-ifd-entry-count-implausible in " + sourceLabel); return; }
+    for (var i = 0; i < count; i++) {
+      var e = ifdOffset + 2 + i * 12;
+      if (e + 12 > bytes.length) { addLimit("exif-ifd-truncated in " + sourceLabel); return; }
+      var tag = u16(e), type = u16(e + 2), num = u32(e + 4);
+      var size = (TYPE_SIZE[type] || 0) * num;
+      if (!size || size > 65536) continue;
+      var valOff = size <= 4 ? e + 8 : tiffStart + u32(e + 8);
+      if (valOff < 0 || valOff + size > bytes.length) continue;
+      var name = map[tag];
+
+      if (tag === 0x8769) {
+        readEntries(tiffStart + u32(e + 8), EXIF_SUB_TAGS, "Exif SubIFD", depth + 1);
+        continue;
+      }
+      if (tag === 0x8825) {
+        addFinding("device", sourceLabel, "GPSInfoIFDPointer",
+          "present, GPS IFD at TIFF offset " + u32(e + 8) + ". Coordinates are not decoded in v1.", false);
+        continue;
+      }
+      if (!name) continue;
+
+      var value = "";
+      if (type === 2) {
+        value = latin1(bytes, valOff, size).replace(/\0+$/, "");
+      } else if (name.indexOf("XP") === 0 && type === 1) {
+        value = utf16be(bytes, valOff, size).replace(/\0+$/, "");
+        if (little) {
+          var sw = "";
+          for (var k = 0; k + 1 < size; k += 2) sw += String.fromCharCode(bytes[valOff + k] | (bytes[valOff + k + 1] << 8));
+          value = sw.replace(/\0+$/, "");
+        }
+      } else if (type === 3) {
+        var parts3 = [];
+        for (var p = 0; p < Math.min(num, 8); p++) parts3.push(u16(valOff + p * 2));
+        value = parts3.join(", ");
+      } else if (type === 4) {
+        var parts4 = [];
+        for (var q = 0; q < Math.min(num, 8); q++) parts4.push(u32(valOff + q * 4));
+        value = parts4.join(", ");
+      } else if (type === 7) {
+        value = latin1(bytes, valOff, Math.min(size, 256)).replace(/[\0-\x08\x0b\x0c\x0e-\x1f]/g, ".");
+      } else {
+        value = "[type " + type + ", " + num + " values]";
+      }
+      if (value === "") continue;
+      var cat = (name === "Artist" || name === "Copyright" || name === "CameraOwnerName" || name.indexOf("XP") === 0)
+        ? "authorship" : "device";
+      addFinding(cat, sourceLabel + " " + label, name, value, false);
+    }
+  }
+  readEntries(ifd0, EXIF_TAGS, "IFD0", 0);
+}
+
+/* ============================================================
+   XMP extraction. Section 6.6 of the handoff.
+   ============================================================ */
+var XMP_FIELDS = [
+  "xmp:CreatorTool", "xmp:CreateDate", "xmp:ModifyDate", "xmp:MetadataDate",
+  "dc:creator", "dc:rights", "dc:title", "dc:description",
+  "photoshop:Credit", "photoshop:History", "photoshop:DateCreated",
+  "Iptc4xmpExt:DigitalSourceType", "plus:DataMining",
+  "xmpMM:DocumentID", "xmpMM:InstanceID", "xmpMM:OriginalDocumentID",
+  "GenAI:Provider", "digitalSourceType"
+];
+function extractXmp(xml, sourceLabel) {
+  var found = 0;
+  for (var i = 0; i < XMP_FIELDS.length; i++) {
+    var f = XMP_FIELDS[i];
+    var attrRe = new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + '\\s*=\\s*"([^"]*)"', "g");
+    var elRe = new RegExp("<" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[^>]*>([\\s\\S]*?)</" + f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ">", "g");
+    var m;
+    while ((m = attrRe.exec(xml)) !== null) { reportXmp(f, m[1], sourceLabel); found++; }
+    while ((m = elRe.exec(xml)) !== null) {
+      var inner = m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      if (inner) { reportXmp(f, inner, sourceLabel); found++; }
+    }
+  }
+  /* Any namespace declaration naming c2pa or cai is itself a provenance signal. */
+  var nsRe = /xmlns:([A-Za-z0-9_.-]*(?:c2pa|cai|CAI|C2PA)[A-Za-z0-9_.-]*)\s*=\s*"([^"]*)"/g;
+  var nm;
+  while ((nm = nsRe.exec(xml)) !== null) {
+    addFinding("provenance", sourceLabel, "XMP namespace " + nm[1], nm[2], false);
+    found++;
+  }
+  return found;
+}
+function reportXmp(field, value, sourceLabel) {
+  var v = value.replace(/\s+/g, " ").trim();
+  if (!v) return;
+  var ai = false;
+  if (field.toLowerCase().indexOf("digitalsourcetype") !== -1) {
+    var low = v.toLowerCase();
+    /* Only trained-algorithmic values are an AI signal. See audit defect C-3. */
+    if (low.indexOf("trainedalgorithmicmedia") !== -1 ||
+        low.indexOf("compositewithtrainedalgorithmicmedia") !== -1) ai = true;
+  }
+  addFinding(ai ? "provenance" : (field.indexOf("dc:creator") === 0 || field.indexOf("dc:rights") === 0 ? "authorship" : "provenance"),
+    sourceLabel, field, v, ai);
+}
+function scanForXmp(bytes, sourceLabel) {
+  var begin = asciiBytes("<?xpacket begin");
+  var endTok = asciiBytes("<?xpacket end");
+  var at = 0, packets = 0, guard = 0;
+  while (guard++ < 50) {
+    at = indexOfBytes(bytes, begin, at);
+    if (at < 0) break;
+    var stop = indexOfBytes(bytes, endTok, at);
+    var sliceEnd = stop < 0 ? Math.min(bytes.length, at + 262144) : Math.min(bytes.length, stop + 64);
+    var xml = utf8(bytes, at, sliceEnd - at);
+    extractXmp(xml, sourceLabel + " XMP packet " + (packets + 1));
+    packets++;
+    at = sliceEnd;
+    if (stop < 0) { addLimit("xmp-packet-unterminated in " + sourceLabel); break; }
+  }
+  return packets;
+}
+
+/* ============================================================
+   JPEG. Corrected segment walk and corrected APP11 JUMBF offsets.
+   ============================================================ */
+async function parseJPEG(bytes) {
+  var i = 2, guard = 0;
+  var app11 = {};   /* box instance number -> ordered segment payloads */
+  while (i < bytes.length && guard++ < 20000) {
+    /* Fill bytes: any number of 0xFF before the marker byte is legal. */
+    if (bytes[i] !== 0xFF) {
+      addLimit("jpeg-segment-desync at offset " + i + ", parse stopped");
+      break;
+    }
+    var j = i;
+    while (j < bytes.length && bytes[j] === 0xFF) j++;
+    if (j >= bytes.length) break;
+    var marker = bytes[j];
+    var after = j + 1;
+
+    /* Standalone markers carry no length field. Audit defect H-1. */
+    if (marker === 0x01 || (marker >= 0xD0 && marker <= 0xD7)) { i = after; continue; }
+    if (marker === 0xD8) { i = after; continue; }
+    if (marker === 0xD9) break;
+    if (marker === 0xDA) break; /* Start of Scan, stop per section 6.2 */
+
+    if (after + 2 > bytes.length) { addLimit("jpeg-segment-truncated at offset " + j); break; }
+    var segLen = (bytes[after] << 8) | bytes[after + 1];
+    if (segLen < 2) { addLimit("jpeg-segment-length-invalid at offset " + after); break; }
+    var payloadStart = after + 2;
+    var payloadLen = segLen - 2;
+    if (payloadStart + payloadLen > bytes.length) {
+      addLimit("jpeg-segment-overruns-buffer at offset " + payloadStart);
+      break;
+    }
+
+    if (marker === 0xE1) {
+      if (latin1(bytes, payloadStart, 6) === "Exif\0\0") {
+        readTiff(bytes, payloadStart + 6, "JPEG APP1 Exif");
+      } else if (latin1(bytes, payloadStart, 28).indexOf("http://ns.adobe.com/xap/1.0/") === 0) {
+        var xmlStart = payloadStart + 29;
+        var xml = utf8(bytes, xmlStart, payloadStart + payloadLen - xmlStart);
+        extractXmp(xml, "JPEG APP1 XMP");
+      }
+    } else if (marker === 0xEB) {
+      /* APP11. Layout: JP(2) instance(2) sequence(4) LBox(4) TBox(4).
+         The handoff put TBox at payload offset 4. It is at 12. Audit defect C-1. */
+      if (payloadLen >= 16 && bytes[payloadStart] === 0x4A && bytes[payloadStart + 1] === 0x50) {
+        var inst = (bytes[payloadStart + 2] << 8) | bytes[payloadStart + 3];
+        var seq = ((bytes[payloadStart + 4] << 24) | (bytes[payloadStart + 5] << 16) |
+                   (bytes[payloadStart + 6] << 8) | bytes[payloadStart + 7]) >>> 0;
+        var lbox = ((bytes[payloadStart + 8] << 24) | (bytes[payloadStart + 9] << 16) |
+                    (bytes[payloadStart + 10] << 8) | bytes[payloadStart + 11]) >>> 0;
+        var tbox = latin1(bytes, payloadStart + 12, 4);
+        if (!app11[inst]) app11[inst] = { tbox: tbox, lbox: lbox, parts: [] };
+        app11[inst].parts.push({ seq: seq, data: bytes.subarray(payloadStart + 8, payloadStart + payloadLen) });
+      } else {
+        addFinding("provenance", "JPEG APP11", "segment", "APP11 present, common identifier JP absent, not a JUMBF box", false);
+      }
+    } else if (marker === 0xFE) {
+      var comment = utf8(bytes, payloadStart, payloadLen).replace(/\0+$/, "").trim();
+      if (comment) addFinding("authorship", "JPEG COM", "comment", comment, false);
+    } else if (marker === 0xED) {
+      var ps = latin1(bytes, payloadStart, 14);
+      if (ps.indexOf("Photoshop 3.0") === 0) {
+        addFinding("provenance", "JPEG APP13", "IPTC/Photoshop resource block", "present, " + payloadLen + " bytes", false);
+      }
+    }
+    i = payloadStart + payloadLen;
+  }
+
+  /* Reassemble multi-segment JUMBF boxes. Audit defect C-2. */
+  var keys = Object.keys(app11);
+  for (var k = 0; k < keys.length; k++) {
+    var box = app11[keys[k]];
+    box.parts.sort(function (a, b) { return a.seq - b.seq; });
+    var total = 0, p;
+    for (p = 0; p < box.parts.length; p++) total += box.parts[p].data.length;
+    var joined = new Uint8Array(total), o = 0;
+    for (p = 0; p < box.parts.length; p++) { joined.set(box.parts[p].data, o); o += box.parts[p].data.length; }
+
+    if (box.tbox === "jumb") {
+      addFinding("provenance", "JPEG APP11 JUMBF", "box type", "jumb, box instance " + keys[k] +
+        ", assembled from " + box.parts.length + " segment(s)", false);
+      addFinding("provenance", "JPEG APP11 JUMBF", "declared box length (LBox)", box.lbox + " bytes", false);
+      addFinding("provenance", "JPEG APP11 JUMBF", "assembled byte length", total + " bytes", false);
+      if (box.lbox && total < box.lbox) addLimit("c2pa-manifest-truncated, assembled " + total + " of " + box.lbox + " declared bytes");
+      inspectJumbf(joined, "JPEG APP11 JUMBF");
+    } else {
+      addFinding("provenance", "JPEG APP11", "box type", box.tbox + " (not a JUMBF superbox)", false);
+    }
+  }
+  await scanTextualSignals(bytes, "JPEG raw bytes");
+}
+
+/* JUMBF payload inspection. Presence and readable strings only.
+   No signature validation, no validity assertion. */
+function inspectJumbf(box, sourceLabel) {
+  var label = "";
+  var lblAt = indexOfBytes(box, asciiBytes("c2pa"), 0);
+  if (lblAt >= 0) {
+    addFinding("provenance", sourceLabel, "descriptor label", "contains the token c2pa at box offset " + lblAt, false);
+    label = "c2pa";
+  }
+  /* Claim generator is reported verbatim. It is NOT treated as an AI signal.
+     Signing cameras carry claim generators with no AI involvement. Audit defect C-3. */
+  var cgKeys = ["claim_generator_info", "claim_generator"];
+  for (var i = 0; i < cgKeys.length; i++) {
+    var at = indexOfBytes(box, asciiBytes(cgKeys[i]), 0);
+    if (at >= 0) {
+      var window = latin1(box, at, 320).replace(/[^\x20-\x7e]+/g, " ").replace(/\s+/g, " ").trim();
+      addFinding("provenance", sourceLabel, cgKeys[i], window, false);
+    }
+  }
+  /* An explicit trained-algorithmic digital source type inside the manifest IS an AI signal. */
+  var dstAt = indexOfBytes(box, asciiBytes("trainedAlgorithmicMedia"), 0);
+  if (dstAt >= 0) {
+    addFinding("provenance", sourceLabel, "digitalSourceType",
+      "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia", true);
+  }
+  var dst2 = indexOfBytes(box, asciiBytes("compositeWithTrainedAlgorithmicMedia"), 0);
+  if (dst2 >= 0) {
+    addFinding("provenance", sourceLabel, "digitalSourceType",
+      "http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia", true);
+  }
+  addLimit("c2pa-manifest-not-cryptographically-validated in " + sourceLabel);
+}
+
+/* ============================================================
+   PNG. Corrected eXIf handling and real zTXt / iTXt inflation.
+   ============================================================ */
+async function parsePNG(bytes) {
+  var i = 8, guard = 0;
+  var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+  while (i + 8 <= bytes.length && guard++ < 20000) {
+    var len = dv.getUint32(i, false);
+    var type = latin1(bytes, i + 4, 4);
+    var dataStart = i + 8;
+    if (len > bytes.length || dataStart + len + 4 > bytes.length) {
+      addLimit("png-chunk-overruns-buffer at offset " + i + ", chunk " + type);
+      break;
+    }
+    if (type === "tEXt") {
+      var raw = bytes.subarray(dataStart, dataStart + len);
+      var nul = raw.indexOf(0);
+      if (nul > 0) {
+        var kw = latin1(raw, 0, nul);
+        var val = utf8(raw, nul + 1, raw.length - nul - 1);
+        addFinding(textCategory(kw), "PNG tEXt", kw, val, false);
+      }
+    } else if (type === "zTXt") {
+      var z = bytes.subarray(dataStart, dataStart + len);
+      var zn = z.indexOf(0);
+      var zkw = zn > 0 ? latin1(z, 0, zn) : "(unnamed)";
+      if (zn >= 0 && inflationAvailable()) {
+        try {
+          /* zTXt carries a zlib stream, so format is deflate rather than deflate-raw. */
+          var inf = await inflate(z.subarray(zn + 2), "deflate");
+          addFinding(textCategory(zkw), "PNG zTXt (inflated)", zkw, utf8(inf, 0, inf.length), false);
+        } catch (e) {
+          addLimit("png-ztxt-unreadable-compressed, keyword " + zkw);
+          addFinding("unreadable", "PNG zTXt", zkw, "present, compressed, inflation failed", false);
+        }
+      } else {
+        addLimit("png-ztxt-unreadable-compressed, keyword " + zkw + ", DecompressionStream unavailable");
+        addFinding("unreadable", "PNG zTXt", zkw, "present, compressed, not inflated", false);
+      }
+    } else if (type === "iTXt") {
+      await readITXt(bytes.subarray(dataStart, dataStart + len));
+    } else if (type === "eXIf") {
+      /* No Exif\0\0 prefix here. TIFF starts at data offset 0. Audit defect H-2. */
+      readTiff(bytes, dataStart, "PNG eXIf");
+    } else if (type === "caBX") {
+      addFinding("provenance", "PNG caBX", "C2PA box", "present, " + len + " bytes", false);
+      inspectJumbf(bytes.subarray(dataStart, dataStart + len), "PNG caBX");
+    } else if (type === "tIME") {
+      if (len >= 7) {
+        addFinding("revision", "PNG tIME", "last modification time",
+          dv.getUint16(dataStart, false) + "-" + bytes[dataStart + 2] + "-" + bytes[dataStart + 3] + " " +
+          bytes[dataStart + 4] + ":" + bytes[dataStart + 5] + ":" + bytes[dataStart + 6], false);
+      }
+    } else if (type === "IEND") {
+      i = dataStart + len + 4;
+      if (i < bytes.length - 8) addLimit("png-trailing-data-after-IEND, " + (bytes.length - i) + " bytes not parsed");
+      break;
+    }
+    i = dataStart + len + 4;
+  }
+  await scanTextualSignals(bytes, "PNG raw bytes");
+}
+/* iTXt layout: keyword NUL compFlag compMethod langTag NUL translatedKeyword NUL text.
+   Treating it as a tEXt pair reports control fields as content. Audit defect M-1. */
+async function readITXt(raw) {
+  var n1 = raw.indexOf(0);
+  if (n1 < 0) return;
+  var kw = latin1(raw, 0, n1);
+  var compFlag = raw[n1 + 1];
+  var p = n1 + 3;
+  var n2 = raw.indexOf(0, p); if (n2 < 0) return;
+  var lang = latin1(raw, p, n2 - p);
+  var n3 = raw.indexOf(0, n2 + 1); if (n3 < 0) return;
+  var textStart = n3 + 1;
+  var body = raw.subarray(textStart);
+  var suffix = lang ? " [lang " + lang + "]" : "";
+  if (compFlag === 1) {
+    if (inflationAvailable()) {
+      try {
+        var inf = await inflate(body, "deflate");
+        addFinding(textCategory(kw), "PNG iTXt (inflated)" + suffix, kw, utf8(inf, 0, inf.length), false);
+      } catch (e) {
+        addLimit("png-itxt-unreadable-compressed, keyword " + kw);
+        addFinding("unreadable", "PNG iTXt", kw, "present, compressed, inflation failed", false);
+      }
+    } else {
+      addLimit("png-itxt-unreadable-compressed, keyword " + kw + ", DecompressionStream unavailable");
+      addFinding("unreadable", "PNG iTXt", kw, "present, compressed, not inflated", false);
+    }
+  } else {
+    var txt = utf8(body, 0, body.length);
+    addFinding(textCategory(kw), "PNG iTXt" + suffix, kw, txt, false);
+    if (txt.indexOf("<?xpacket") !== -1 || txt.indexOf("x:xmpmeta") !== -1) extractXmp(txt, "PNG iTXt XMP");
+  }
+}
+function textCategory(kw) {
+  var k = String(kw).toLowerCase();
+  if (k === "author" || k === "artist" || k === "copyright") return "authorship";
+  if (k === "software" || k === "source") return "device";
+  return "provenance";
+}
+
+/* ============================================================
+   ZIP container, Office packages.
+   Entry data offsets come from the LOCAL header, not the central
+   directory. Audit defect H-3.
+   ============================================================ */
+async function parseZip(bytes) {
+  var eocdWindow = Math.min(bytes.length, 65557 + 22);
+  var scanFrom = bytes.length - eocdWindow;
+  var eocd = lastIndexOfBytes(bytes.subarray(scanFrom), asciiBytes("PK\x05\x06"), undefined);
+  if (eocd < 0) { addLimit("zip-end-of-central-directory-not-found"); return null; }
+  eocd += scanFrom;
+  var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+  var entryCount = dv.getUint16(eocd + 10, true);
+  var cdOffset = dv.getUint32(eocd + 16, true);
+  if (cdOffset >= bytes.length) { addLimit("zip-central-directory-offset-out-of-range"); return null; }
+
+  var entries = [], p = cdOffset, guard = 0;
+  while (guard++ < 20000 && entries.length < entryCount && p + 46 <= bytes.length) {
+    if (!(bytes[p] === 0x50 && bytes[p + 1] === 0x4B && bytes[p + 2] === 0x01 && bytes[p + 3] === 0x02)) break;
+    var method = dv.getUint16(p + 10, true);
+    var compSize = dv.getUint32(p + 20, true);
+    var uncompSize = dv.getUint32(p + 24, true);
+    var nameLen = dv.getUint16(p + 28, true);
+    var extraLen = dv.getUint16(p + 30, true);
+    var commentLen = dv.getUint16(p + 32, true);
+    var localOff = dv.getUint32(p + 42, true);
+    var name = utf8(bytes, p + 46, nameLen);
+    entries.push({ name: name, method: method, compSize: compSize, uncompSize: uncompSize, localOff: localOff });
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  if (entries.length === 0) { addLimit("zip-central-directory-unreadable"); return null; }
+
+  async function readEntry(entry) {
+    var lo = entry.localOff;
+    if (lo + 30 > bytes.length) { addLimit("zip-local-header-out-of-range for " + entry.name); return null; }
+    if (!(bytes[lo] === 0x50 && bytes[lo + 1] === 0x4B && bytes[lo + 2] === 0x03 && bytes[lo + 3] === 0x04)) {
+      addLimit("zip-local-header-signature-mismatch for " + entry.name); return null;
+    }
+    /* These two lengths differ from the central directory values on real Office files. */
+    var lNameLen = dv.getUint16(lo + 26, true);
+    var lExtraLen = dv.getUint16(lo + 28, true);
+    var dataStart = lo + 30 + lNameLen + lExtraLen;
+    var size = entry.compSize;
+    if (dataStart + size > bytes.length) { addLimit("zip-entry-data-out-of-range for " + entry.name); return null; }
+    var raw = bytes.subarray(dataStart, dataStart + size);
+    if (entry.method === 0) return raw;
+    if (entry.method === 8) {
+      if (!inflationAvailable()) { addLimit("zip-entry-unreadable-compressed, " + entry.name + ", DecompressionStream unavailable"); return null; }
+      try { return await inflate(raw, "deflate-raw"); }
+      catch (e) { addLimit("zip-entry-unreadable-compressed, " + entry.name + ", inflation failed"); return null; }
+    }
+    addLimit("zip-entry-unsupported-compression-method-" + entry.method + ", " + entry.name);
+    return null;
+  }
+
+  var byName = {};
+  for (var i = 0; i < entries.length; i++) byName[entries[i].name] = entries[i];
+
+  /* Package kind from [Content_Types].xml */
+  var kind = "ZIP container, not an Office package";
+  var ct = byName["[Content_Types].xml"];
+  if (ct) {
+    var ctBytes = await readEntry(ct);
+    if (ctBytes) {
+      var ctText = utf8(ctBytes, 0, ctBytes.length);
+      if (ctText.indexOf("wordprocessingml") !== -1) kind = "Office Open XML, Word package";
+      else if (ctText.indexOf("spreadsheetml") !== -1) kind = "Office Open XML, Excel package";
+      else if (ctText.indexOf("presentationml") !== -1) kind = "Office Open XML, PowerPoint package";
+      else kind = "Office Open XML, package kind not recognized";
+      var ctC2pa = ctText.toLowerCase().indexOf("c2pa");
+      if (ctC2pa !== -1) addFinding("provenance", "[Content_Types].xml", "content type", "declares a c2pa content type", false);
+    }
+  } else if (byName["mimetype"]) {
+    kind = "OpenDocument or EPUB style ZIP package";
+  }
+  addFinding("provenance", "ZIP container", "package kind", kind, false);
+  addFinding("provenance", "ZIP container", "entry count", String(entries.length), false);
+
+  async function textOf(name) {
+    var e = byName[name];
+    if (!e) return null;
+    var b = await readEntry(e);
+    return b ? utf8(b, 0, b.length) : null;
+  }
+  function tagVal(xml, tag) {
+    var re = new RegExp("<" + tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[^>]*>([\\s\\S]*?)</" + tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ">");
+    var m = re.exec(xml);
+    if (!m) return null;
+    var v = m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    return v || null;
+  }
+
+  var core = await textOf("docProps/core.xml");
+  if (core) {
+    var coreMap = [
+      ["dc:creator", "authorship"], ["cp:lastModifiedBy", "authorship"], ["cp:revision", "revision"],
+      ["dcterms:created", "revision"], ["dcterms:modified", "revision"], ["cp:category", "provenance"],
+      ["cp:keywords", "provenance"], ["dc:description", "provenance"], ["dc:title", "provenance"],
+      ["dc:subject", "provenance"], ["cp:contentStatus", "provenance"]
+    ];
+    for (var c = 0; c < coreMap.length; c++) {
+      var v = tagVal(core, coreMap[c][0]);
+      if (v) addFinding(coreMap[c][1], "docProps/core.xml", coreMap[c][0], v, false);
+    }
+  } else if (byName["docProps/core.xml"]) {
+    addLimit("ooxml-core-properties-unreadable");
+  }
+
+  var app = await textOf("docProps/app.xml");
+  if (app) {
+    var appMap = ["Company", "Manager", "Template", "TotalTime", "Application", "AppVersion", "Pages", "Words", "Characters"];
+    for (var a = 0; a < appMap.length; a++) {
+      var av = tagVal(app, appMap[a]);
+      if (av) addFinding(appMap[a] === "Company" || appMap[a] === "Manager" ? "authorship" : "device",
+        "docProps/app.xml", appMap[a], av, false);
+    }
+  }
+
+  var custom = await textOf("docProps/custom.xml");
+  if (custom) {
+    var propRe = /<property[^>]*name="([^"]*)"[^>]*>([\s\S]*?)<\/property>/g, pm;
+    while ((pm = propRe.exec(custom)) !== null) {
+      var pv = pm[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      if (pv) addFinding("provenance", "docProps/custom.xml", pm[1], pv, false);
+    }
+  }
+
+  /* Revision signals. Word paths, plus the Excel and PowerPoint equivalents. Audit gap G-3. */
+  var docXml = await textOf("word/document.xml");
+  if (docXml) {
+    var ins = (docXml.match(/<w:ins\b/g) || []).length;
+    var del = (docXml.match(/<w:del\b/g) || []).length;
+    if (ins || del) addFinding("revision", "word/document.xml", "tracked changes",
+      "present, " + ins + " insertion element(s), " + del + " deletion element(s)", false);
+    else addFinding("revision", "word/document.xml", "tracked changes", "no w:ins or w:del elements found", false);
+  }
+  var comments = await textOf("word/comments.xml");
+  if (comments) {
+    var authors = {}, cm, cre = /w:author="([^"]*)"/g;
+    while ((cm = cre.exec(comments)) !== null) authors[cm[1]] = 1;
+    var names = Object.keys(authors);
+    addFinding("authorship", "word/comments.xml", "comment authors",
+      names.length + " distinct: " + names.join(", "), false);
+  }
+  var settings = await textOf("word/settings.xml");
+  if (settings) {
+    var rsids = (settings.match(/<w:rsid\b/g) || []).length;
+    if (rsids) addFinding("revision", "word/settings.xml", "w:rsid revision save identifiers", String(rsids) + " present", false);
+    if (settings.indexOf("w:removePersonalInformation") !== -1)
+      addFinding("revision", "word/settings.xml", "w:removePersonalInformation", "present", false);
+  }
+  var wb = await textOf("xl/workbook.xml");
+  if (wb) {
+    var lastEdited = /lastEdited="([^"]*)"/.exec(wb);
+    var appName = /appName="([^"]*)"/.exec(wb);
+    if (appName) addFinding("device", "xl/workbook.xml", "fileVersion appName", appName[1], false);
+    if (lastEdited) addFinding("revision", "xl/workbook.xml", "fileVersion lastEdited", lastEdited[1], false);
+  }
+  var pres = await textOf("ppt/presentation.xml");
+  if (pres) addFinding("provenance", "ppt/presentation.xml", "presentation part", "present", false);
+
+  /* External references and C2PA parts. */
+  for (var e2 = 0; e2 < entries.length; e2++) {
+    var nm2 = entries[e2].name;
+    if (nm2.toLowerCase().indexOf("c2pa") !== -1) {
+      addFinding("provenance", "ZIP entry", "C2PA part", nm2 + ", " + entries[e2].uncompSize + " bytes uncompressed", false);
+      var cb = await readEntry(entries[e2]);
+      if (cb) inspectJumbf(cb, "OOXML part " + nm2);
+    }
+    if (nm2.indexOf("_rels/") !== -1 || nm2.indexOf(".rels") !== -1) {
+      var rb = await readEntry(entries[e2]);
+      if (rb) {
+        var rt = utf8(rb, 0, rb.length);
+        var rre = /<Relationship[^>]*>/g, rm;
+        while ((rm = rre.exec(rt)) !== null) {
+          var tag = rm[0];
+          var tgt = /Target="([^"]*)"/.exec(tag);
+          var mode = /TargetMode="([^"]*)"/.exec(tag);
+          if (!tgt) continue;
+          var isExternal = (mode && mode[1] === "External") || /^(https?|mailto|ftp|file):/i.test(tgt[1]);
+          if (isExternal) addFinding("external", nm2, "relationship target", tgt[1], false);
+        }
+      }
+    }
+  }
+
+  /* XMP inside the package, where a writer placed one. */
+  for (var e3 = 0; e3 < entries.length; e3++) {
+    var n3 = entries[e3].name.toLowerCase();
+    if (n3.indexOf("xmp") !== -1 || n3.indexOf("metadata") !== -1) {
+      var xb = await readEntry(entries[e3]);
+      if (xb) {
+        var xt = utf8(xb, 0, xb.length);
+        if (xt.indexOf("xmpmeta") !== -1 || xt.indexOf("<?xpacket") !== -1) extractXmp(xt, "ZIP entry " + entries[e3].name);
+      }
+    }
+  }
+  return kind;
+}
+
+/* ============================================================
+   PDF. Limited capability, stated plainly, with the
+   not-present versus not-readable distinction preserved.
+   ============================================================ */
+function pdfDecodeString(raw) {
+  /* raw is the byte array of a literal or hex string body. */
+  if (raw.length >= 2 && raw[0] === 0xFE && raw[1] === 0xFF) {
+    return { text: utf16be(raw, 2, raw.length - 2), enc: "UTF-16BE with BOM" };
+  }
+  var s = "";
+  for (var i = 0; i < raw.length; i++) s += String.fromCharCode(raw[i]);
+  return { text: s, enc: "PDFDocEncoding or ASCII" };
+}
+function pdfParseDictStrings(bytes, dictStart, dictEnd, sourceLabel) {
+  var keys = ["Title", "Author", "Subject", "Keywords", "Creator", "Producer", "CreationDate", "ModDate", "Trapped"];
+  var found = 0;
+  for (var k = 0; k < keys.length; k++) {
+    var key = keys[k];
+    var at = indexOfBytes(bytes.subarray(dictStart, dictEnd), asciiBytes("/" + key), 0);
+    if (at < 0) continue;
+    var p = dictStart + at + key.length + 1;
+    while (p < dictEnd && (bytes[p] === 0x20 || bytes[p] === 0x0a || bytes[p] === 0x0d || bytes[p] === 0x09)) p++;
+    var body = null;
+    if (bytes[p] === 0x28) { /* literal string */
+      var depth = 1, q = p + 1, out = [];
+      while (q < dictEnd && depth > 0) {
+        var ch = bytes[q];
+        if (ch === 0x5C) { /* backslash escape */
+          var nx = bytes[q + 1];
+          var map = { 0x6e: 10, 0x72: 13, 0x74: 9, 0x62: 8, 0x66: 12, 0x28: 40, 0x29: 41, 0x5c: 92 };
+          if (map[nx] !== undefined) { out.push(map[nx]); q += 2; continue; }
+          if (nx >= 0x30 && nx <= 0x37) {
+            var oct = 0, cnt = 0, r = q + 1;
+            while (cnt < 3 && bytes[r] >= 0x30 && bytes[r] <= 0x37) { oct = oct * 8 + (bytes[r] - 0x30); r++; cnt++; }
+            out.push(oct & 0xff); q = r; continue;
+          }
+          q += 2; continue;
+        }
+        if (ch === 0x28) depth++;
+        if (ch === 0x29) { depth--; if (depth === 0) { q++; break; } }
+        out.push(ch); q++;
+      }
+      body = new Uint8Array(out);
+    } else if (bytes[p] === 0x3C) { /* hex string */
+      var hex = "", r2 = p + 1;
+      while (r2 < dictEnd && bytes[r2] !== 0x3E) {
+        var c2 = String.fromCharCode(bytes[r2]);
+        if (/[0-9a-fA-F]/.test(c2)) hex += c2;
+        r2++;
+      }
+      if (hex.length % 2) hex += "0";
+      var hb = new Uint8Array(hex.length / 2);
+      for (var h = 0; h < hb.length; h++) hb[h] = parseInt(hex.substr(h * 2, 2), 16);
+      body = hb;
+    }
+    if (!body || body.length === 0) continue;
+    var dec = pdfDecodeString(body);
+    var txt = dec.text.replace(/\0/g, "").trim();
+    if (!txt) continue;
+    var cat = (key === "Author") ? "authorship" :
+              (key === "Creator" || key === "Producer") ? "device" :
+              (key === "CreationDate" || key === "ModDate") ? "revision" : "provenance";
+    var rawHex = "";
+    for (var z = 0; z < Math.min(body.length, 64); z++) rawHex += ("0" + body[z].toString(16)).slice(-2);
+    addFinding(cat, sourceLabel, "/" + key, txt, false, dec.enc + ", raw bytes " + rawHex + (body.length > 64 ? "..." : ""));
+    found++;
+  }
+  return found;
+}
+async function parsePDF(bytes) {
+  var header = latin1(bytes, 0, 16).replace(/[^\x20-\x7e]/g, "");
+  addFinding("provenance", "PDF header", "version", header.slice(0, 8), false);
+
+  /* Encryption check before anything else. Reporting ciphertext as an author
+     field is worse than reporting nothing. Audit defect C-4. */
+  var encrypted = false;
+  var trailers = findAllBytes(bytes, asciiBytes("trailer"), 40);
+  var tI;
+  for (tI = 0; tI < trailers.length; tI++) {
+    var win = bytes.subarray(trailers[tI], Math.min(bytes.length, trailers[tI] + 2048));
+    if (indexOfBytes(win, asciiBytes("/Encrypt"), 0) >= 0) encrypted = true;
+  }
+  if (!encrypted && indexOfBytes(bytes, asciiBytes("/Encrypt"), 0) >= 0) {
+    var tailStart = Math.max(0, bytes.length - 4096);
+    if (indexOfBytes(bytes.subarray(tailStart), asciiBytes("/Encrypt"), 0) >= 0) encrypted = true;
+  }
+  if (encrypted) {
+    addFinding("unreadable", "PDF trailer", "/Encrypt", "present, document strings are encrypted", false);
+    addLimit("pdf-encrypted-strings-unreadable, document information dictionary not reported");
+  }
+
+  /* Cross-reference form. */
+  var sxAt = lastIndexOfBytes(bytes, asciiBytes("startxref"), undefined);
+  var xrefStream = false;
+  if (sxAt >= 0) {
+    var tail = latin1(bytes, sxAt, 64);
+    var num = /startxref\s+(\d+)/.exec(tail);
+    if (num) {
+      var off = parseInt(num[1], 10);
+      if (off > 0 && off < bytes.length) {
+        var probe = latin1(bytes, off, 64);
+        if (/^\s*xref/.test(probe)) {
+          addFinding("provenance", "PDF cross-reference", "form", "classic cross-reference table", false);
+        } else if (/^\s*\d+\s+\d+\s+obj/.test(probe)) {
+          xrefStream = true;
+          addFinding("provenance", "PDF cross-reference", "form", "cross-reference stream (compressed)", false);
+          addLimit("pdf-xref-stream-not-resolved, object offsets not followed");
+        }
+      }
+    }
+  } else {
+    addLimit("pdf-startxref-not-found");
+  }
+  if (trailers.length > 1) {
+    addFinding("revision", "PDF structure", "trailer count", trailers.length + " trailer keywords found, document has an update history", false);
+  }
+
+  /* Document information dictionary. */
+  var infoReported = 0;
+  if (!encrypted) {
+    var infoRefs = findAllBytes(bytes, asciiBytes("/Info"), 20);
+    var resolved = false;
+    for (var r = 0; r < infoRefs.length && !resolved; r++) {
+      var m = /\/Info\s+(\d+)\s+(\d+)\s+R/.exec(latin1(bytes, infoRefs[r], 48));
+      if (!m) continue;
+      var objTok = asciiBytes(m[1] + " " + m[2] + " obj");
+      var objAt = lastIndexOfBytes(bytes, objTok, undefined);
+      if (objAt < 0) objAt = indexOfBytes(bytes, objTok, 0);
+      if (objAt < 0) continue;
+      var endAt = indexOfBytes(bytes, asciiBytes("endobj"), objAt);
+      if (endAt < 0) endAt = Math.min(bytes.length, objAt + 8192);
+      infoReported += pdfParseDictStrings(bytes, objAt, endAt, "PDF /Info object " + m[1]);
+      resolved = infoReported > 0;
+    }
+    if (infoReported === 0) {
+      /* Raw scan fallback. Values are labeled as located by scan, not by xref resolution. */
+      var prodAt = indexOfBytes(bytes, asciiBytes("/Producer"), 0);
+      if (prodAt >= 0) {
+        infoReported += pdfParseDictStrings(bytes, Math.max(0, prodAt - 512),
+          Math.min(bytes.length, prodAt + 2048), "PDF raw scan, not resolved through xref");
+      }
+      if (infoReported === 0) {
+        if (xrefStream) addLimit("pdf-document-information-unreadable-compressed, not reported as absent");
+        else addLimit("pdf-document-information-not-located");
+      }
+    }
+  }
+
+  /* XMP metadata. */
+  var packets = scanForXmp(bytes, "PDF");
+  if (packets === 0) {
+    if (indexOfBytes(bytes, asciiBytes("/Metadata"), 0) >= 0) {
+      addLimit("pdf-xmp-metadata-stream-present-but-compressed, not reported as absent");
+      addFinding("unreadable", "PDF", "/Metadata", "metadata stream referenced, packet not readable in raw bytes", false);
+    }
+  }
+
+  /* Content credential indicators. */
+  if (indexOfBytes(bytes, asciiBytes("c2pa"), 0) >= 0) {
+    addFinding("provenance", "PDF raw bytes", "c2pa token", "literal token c2pa present, external verification required", false);
+    addLimit("pdf-c2pa-token-detected-not-validated");
+  }
+  if (indexOfBytes(bytes, asciiBytes("/AF"), 0) >= 0) {
+    addFinding("provenance", "PDF raw bytes", "/AF", "associated file entry present, possible embedded manifest", false);
+  }
+  if (infoReported === 0 && !encrypted) {
+    addFinding("unreadable", "PDF", "document information dictionary", "not reported as absent, see capability limits", false);
+  }
+}
+
+/* ============================================================
+   Textual inspection. Section 6.1 routes text and markdown here.
+   The handoff defines no behavior. Audit gap G-1.
+   Detection only. Nothing is removed, per section 11.
+   ============================================================ */
+var INVISIBLES = [
+  [0x200B, "ZERO WIDTH SPACE"], [0x200C, "ZERO WIDTH NON-JOINER"], [0x200D, "ZERO WIDTH JOINER"],
+  [0x2060, "WORD JOINER"], [0xFEFF, "ZERO WIDTH NO-BREAK SPACE / BOM"], [0x00AD, "SOFT HYPHEN"],
+  [0x180E, "MONGOLIAN VOWEL SEPARATOR"], [0x202A, "LEFT-TO-RIGHT EMBEDDING"],
+  [0x202B, "RIGHT-TO-LEFT EMBEDDING"], [0x202C, "POP DIRECTIONAL FORMATTING"],
+  [0x202D, "LEFT-TO-RIGHT OVERRIDE"], [0x202E, "RIGHT-TO-LEFT OVERRIDE"],
+  [0x2066, "LEFT-TO-RIGHT ISOLATE"], [0x2067, "RIGHT-TO-LEFT ISOLATE"],
+  [0x2068, "FIRST STRONG ISOLATE"], [0x2069, "POP DIRECTIONAL ISOLATE"]
+];
+function parseTextual(bytes) {
+  var hasBom = bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF;
+  if (hasBom) addFinding("provenance", "byte order mark", "UTF-8 BOM", "present at offset 0", false);
+  if (bytes.length >= 2 && ((bytes[0] === 0xFF && bytes[1] === 0xFE) || (bytes[0] === 0xFE && bytes[1] === 0xFF))) {
+    addFinding("provenance", "byte order mark", "UTF-16 BOM", "present at offset 0", false);
+    addLimit("text-utf16-decoded-as-utf8-may-be-partial");
+  }
+  var cap = 4 * 1024 * 1024;
+  if (bytes.length > cap) addLimit("text-scan-limited-to-first-" + cap + "-bytes");
+  var text = utf8(bytes, 0, Math.min(bytes.length, cap));
+  var counts = {};
+  for (var i = 0; i < text.length; i++) {
+    var cp = text.codePointAt(i);
+    for (var j = 0; j < INVISIBLES.length; j++) {
+      if (cp === INVISIBLES[j][0]) {
+        if (i === 0 && cp === 0xFEFF) break;
+        var key = INVISIBLES[j][0] + "|" + INVISIBLES[j][1];
+        if (!counts[key]) counts[key] = { n: 0, first: i };
+        counts[key].n++;
+        break;
+      }
+    }
+  }
+  var keys = Object.keys(counts);
+  for (var k = 0; k < keys.length; k++) {
+    var parts = keys[k].split("|");
+    var cpHex = "U+" + parseInt(parts[0], 10).toString(16).toUpperCase();
+    addFinding("provenance", "text body", "invisible character " + cpHex + " " + parts[1],
+      counts[keys[k]].n + " occurrence(s), first at character index " + counts[keys[k]].first, false);
+  }
+  addFinding("provenance", "text body", "character count", String(text.length), false);
+  addLimit("plain-text-carries-no-structured-metadata-container");
+}
+/* Raw-byte sweep for provenance markers in binary formats,
+   for signals sitting outside a parsed structure. */
+async function scanTextualSignals(bytes, sourceLabel) {
+  var markers = ["trainedAlgorithmicMedia", "compositeWithTrainedAlgorithmicMedia"];
+  for (var i = 0; i < markers.length; i++) {
+    if (indexOfBytes(bytes, asciiBytes(markers[i]), 0) >= 0) {
+      var already = STATE.findings.some(function (f) { return f.value.indexOf(markers[i]) !== -1; });
+      if (!already) {
+        addFinding("provenance", sourceLabel, "IPTC DigitalSourceType token",
+          "http://cv.iptc.org/newscodes/digitalsourcetype/" + markers[i], true);
+      }
+    }
+  }
+}
+
+/* ============================================================
+   Orchestration
+   ============================================================ */
+async function inspect(file) {
+  STATE.file = file;
+  STATE.findings = [];
+  STATE.limits = [];
+  STATE.label = "";
+  el("labelout").hidden = true;
+  el("attestout").hidden = true;
+  el("panel2").hidden = true;
+  el("panel3").hidden = true;
+  el("results").hidden = true;
+  setStatus("Reading " + file.name + " into memory. Nothing is uploaded.");
+
+  var buf = await readArrayBuffer(file);
+  var bytes = new Uint8Array(buf);
+  STATE.buffer = buf;
+  STATE.bytes = bytes;
+
+  /* Hash before any parsing, per section 8.2. */
+  var h = await sha256(bytes);
+  STATE.sha256 = h.hex;
+  STATE.hashImpl = h.impl;
+  STATE.loadHash = h.hex;
+
+  var fmt = detectFormat(bytes);
+  STATE.format = fmt.name;
+  setStatus("Parsing. Detected " + fmt.name + " by magic bytes.");
+
+  try {
+    if (fmt.id === "jpeg") await parseJPEG(bytes);
+    else if (fmt.id === "png") await parsePNG(bytes);
+    else if (fmt.id === "zip" || fmt.id === "zipe") {
+      var kind = await parseZip(bytes);
+      if (kind) STATE.format = fmt.name + ", " + kind;
+    }
+    else if (fmt.id === "pdf") await parsePDF(bytes);
+    else if (fmt.id === "text") parseTextual(bytes);
+    else if (fmt.id === "empty") {
+      addLimit("file-is-zero-bytes, no format and no metadata container present");
+    }
+    else {
+      addLimit("format-unsupported-in-v1, " + fmt.name + ", no parser present, absence of findings means nothing here");
+      scanForXmp(bytes, fmt.name);
+      await scanTextualSignals(bytes, fmt.name + " raw bytes");
+    }
+  } catch (e) {
+    addLimit("parser-aborted-on-error, " + String(e && e.message ? e.message : e));
+  }
+
+  /* Read-only verification. Re-hash the buffer after parsing and compare.
+     This replaces vacuous acceptance test 5. Audit defect A-1. */
+  var h2 = await sha256(STATE.bytes);
+  if (h2.hex !== STATE.loadHash) {
+    addLimit("READ-ONLY VIOLATION, buffer digest changed during parsing");
+  } else {
+    addFinding("provenance", "LINEAGE self-check", "input buffer integrity",
+      "digest unchanged across the parse, input was not modified in memory", false);
+  }
+
+  render();
+  el("panel2").hidden = false;
+  el("panel3").hidden = false;
+  deriveLabelInputs();
+  setStatus("Inspection complete. " + STATE.findings.length + " finding(s), " + STATE.limits.length + " capability limit(s).");
+}
+
+function readArrayBuffer(file) {
+  return new Promise(function (resolve, reject) {
+    var r = new FileReader();
+    r.onload = function () { resolve(r.result); };
+    r.onerror = function () { reject(r.error || new Error("file read failed")); };
+    r.readAsArrayBuffer(file);
+  });
+}
+function setStatus(t) { el("status").textContent = t; }
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+var CATEGORY_ORDER = ["provenance", "authorship", "device", "revision", "external", "unreadable"];
+var CATEGORY_TITLE = {
+  provenance: "Provenance", authorship: "Authorship", device: "Device and software",
+  revision: "Revision history", external: "External references", unreadable: "Present but not readable"
+};
+
+/* Stat tiles, Semper section 9.4. Icons are inline SVG, no remote asset. */
+var ICONS = {
+  findings: '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 4h11l5 5v11H4z"/><path d="M15 4v5h5"/><path d="M8 13h8M8 17h5"/></svg>',
+  signal:   '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.2"/></svg>',
+  limit:    '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3.5 21 20H3z"/><path d="M12 10v4.5M12 17.2v.6"/></svg>',
+  format:   '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5-9 4.5z"/><path d="M3 12.5 12 17l9-4.5M3 17 12 21.5 21 17"/></svg>'
+};
+function statTile(icon, value, eyebrow, meta, cls, small) {
+  return '<div class="stat' + (cls ? ' ' + cls : '') + '">' + icon +
+    '<div class="num' + (small ? ' sm' : '') + '">' + esc(value) + '</div>' +
+    '<div class="eyebrow">' + esc(eyebrow) + '</div>' +
+    '<div class="meta">' + esc(meta) + '</div></div>';
+}
+function renderStats() {
+  var ai = STATE.findings.filter(function (x) { return x.aiSignal; }).length;
+  var fmt = STATE.format.split(",")[0];
+  el("stats").innerHTML =
+    statTile(ICONS.findings, String(STATE.findings.length), "Provenance findings",
+      "Read from the structures this build parses") +
+    statTile(ICONS.signal, String(ai), "Explicit AI signals",
+      ai ? "Declared in the file, not inferred" : "None declared. Not evidence of absence",
+      ai ? "signal" : "") +
+    statTile(ICONS.limit, String(STATE.limits.length), "Capability limits",
+      STATE.limits.length ? "Unread, which is not the same as absent" : "Everything this build reads was readable",
+      STATE.limits.length ? "limit" : "") +
+    statTile(ICONS.format, fmt, "Detected format", "By magic bytes, extension ignored", "", true);
+}
+
+function render() {
+  var f = STATE.file;
+  renderStats();
+  el("filecard").innerHTML =
+    row("File name", f.name) +
+    row("Size", f.size.toLocaleString() + " bytes") +
+    row("Detected format", STATE.format) +
+    row("Declared extension", (f.name.indexOf(".") >= 0 ? f.name.slice(f.name.lastIndexOf(".")) : "(none)")) +
+    row("SHA-256", STATE.sha256) +
+    row("Digest source", STATE.hashImpl);
+
+  var aiCount = STATE.findings.filter(function (x) { return x.aiSignal; }).length;
+  var v = el("verdict");
+  if (STATE.findings.length === 0 && STATE.limits.length === 0) {
+    v.innerHTML = '<div class="verdict"><h4>No provenance data found, and no capability limits were hit</h4>' +
+      '<p>Every structure this build reads was read. Nothing in the file declares an origin. This is not evidence the document had no AI involvement.</p></div>';
+  } else if (STATE.limits.length > 0) {
+    v.innerHTML = '<div class="verdict unknown"><h4>Result is partly unknown</h4>' +
+      '<p>This inspection hit ' + STATE.limits.length + ' capability limit(s). Anything behind those limits is unread, not absent. ' +
+      'Findings below cover only the structures this build parses.' +
+      (aiCount ? ' ' + aiCount + ' explicit generative AI signal(s) were found.' : ' No explicit generative AI signal was found in the readable structures.') +
+      '</p></div>';
+  } else {
+    v.innerHTML = '<div class="verdict"><h4>Inspection complete, no capability limits hit</h4>' +
+      '<p>' + STATE.findings.length + ' provenance finding(s). ' +
+      (aiCount ? aiCount + ' explicit generative AI signal(s).' : 'No explicit generative AI signal in the readable structures.') +
+      ' Absence of a signal is not evidence of absence of AI involvement.</p></div>';
+  }
+
+  var html = "";
+  for (var c = 0; c < CATEGORY_ORDER.length; c++) {
+    var cat = CATEGORY_ORDER[c];
+    var rows = STATE.findings.filter(function (x) { return x.category === cat; });
+    if (rows.length === 0) continue;
+    html += '<div class="tablewrap"><table><caption>' + esc(CATEGORY_TITLE[cat]) + ' (' + rows.length + ')</caption><thead><tr>' +
+      '<th scope="col">Source</th><th scope="col">Field</th><th scope="col">Value as found</th></tr></thead><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      html += '<tr' + (r.aiSignal ? ' class="ai"' : '') + '><td>' + esc(r.source) + '</td><td>' + esc(r.field) +
+        (r.aiSignal ? ' <span class="tag">AI signal</span>' : '') + '</td><td class="val">' + esc(r.value) +
+        (r.rawValue ? '\n<span class="enc">encoding: ' + esc(r.rawValue) + '</span>' : '') +
+        '</td></tr>';
+    }
+    html += '</tbody></table></div>';
+  }
+  if (!html) html = '<p class="note">No findings in any category.</p>';
+  el("findings").innerHTML = html;
+
+  var lim = '<h3>Capability limits encountered (' + STATE.limits.length + ')</h3>';
+  if (STATE.limits.length === 0) {
+    lim += '<p class="note">None. Every structure this build reads was readable in this file. A zero-finding result with zero limits means nothing declaring an origin was present in the structures parsed.</p>';
+  } else {
+    lim += '<p class="note">Each line below marks something this build could not read. Unread is not the same as absent. Treat every line as an open question rather than a negative result.</p><ul class="limits">';
+    for (var L = 0; L < STATE.limits.length; L++) lim += '<li>' + esc(STATE.limits[L]) + '</li>';
+    lim += '</ul>';
+  }
+  el("limits").innerHTML = lim;
+  el("results").hidden = false;
+}
+function row(k, v) { return "<dt>" + esc(k) + "</dt><dd>" + esc(v) + "</dd>"; }
+
+/* ============================================================
+   Derivation. Fill from the file what the file declares about
+   itself. Leave empty what only a person knows.
+
+   The dividing line is not convenience. A value LINEAGE fills is a
+   value the document asserts. A value LINEAGE leaves empty is a
+   claim about human conduct, and a tool prefilling one of those
+   would be manufacturing the assertion the annotation exists to make.
+   ============================================================ */
+var ORIGIN = {};   /* field id -> {text, derived:boolean, source:string} */
+
+function findingWhere(pred) {
+  for (var i = 0; i < STATE.findings.length; i++) if (pred(STATE.findings[i])) return STATE.findings[i];
+  return null;
+}
+function findingsWhere(pred) { return STATE.findings.filter(pred); }
+
+function normalizeDate(s) {
+  if (!s) return "";
+  var m;
+  if ((m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s))) return m[1] + "-" + m[2] + "-" + m[3];
+  if ((m = /^D:(\d{4})(\d{2})(\d{2})/.exec(s))) return m[1] + "-" + m[2] + "-" + m[3];
+  if ((m = /^(\d{4}):(\d{2}):(\d{2})/.exec(s))) return m[1] + "-" + m[2] + "-" + m[3];
+  if ((m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s))) return m[1] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[3]).slice(-2);
+  return "";
+}
+function todayValue() {
+  var d = new Date();
+  return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+}
+function setOrigin(id, text, derived, source) {
+  ORIGIN[id] = { text: text, derived: !!derived, source: source || "" };
+  var node = el("o-" + id.replace("f-", ""));
+  if (node) { node.textContent = text; node.className = "origin" + (derived ? "" : " blocked"); }
+}
+function markEdited(id) {
+  ORIGIN[id] = { text: "Operator entered, overriding the derived value.", derived: false, source: "operator" };
+  var node = el("o-" + id.replace("f-", ""));
+  if (node) { node.textContent = ORIGIN[id].text; node.className = "origin edited"; }
+  updateDeriveSummary();
+}
+
+function deriveLabelInputs() {
+  ORIGIN = {};
+  var filled = 0, total = 4;
+
+  /* Per-document assertions reset on every new file. Scope, portion, and the
+     accuracy confirmation describe one document and must not carry over. */
+  el("f-scope").value = "none";
+  el("f-portion").value = "";
+  el("f-verify").checked = false;
+  el("labelstatus").textContent = "";
+
+  /* 1. Title. The document declares this or it does not. */
+  var titleF = findingWhere(function (f) {
+    return /\/Title$/.test(f.field) || f.field === "dc:title" || f.field === "XPTitle";
+  });
+  if (titleF) {
+    el("f-title").value = titleF.value;
+    setOrigin("f-title", "Read from " + titleF.source + ", field " + titleF.field + ".", true, titleF.source);
+    filled++;
+  } else {
+    var stem = STATE.file.name.replace(/\.[^.]+$/, "");
+    el("f-title").value = stem;
+    setOrigin("f-title", "No title field in the file. Filled from the file name, which is operator supplied and untrusted. Correct it if it is wrong.", true, "filename");
+    filled++;
+  }
+
+  /* 2. Document date. Modification date first, creation date second. */
+  var dateF = findingWhere(function (f) { return f.field === "dcterms:modified" || /\/ModDate$/.test(f.field); }) ||
+              findingWhere(function (f) { return f.field === "dcterms:created" || /\/CreationDate$/.test(f.field); }) ||
+              findingWhere(function (f) { return f.field === "DateTime" || f.field === "DateTimeOriginal"; }) ||
+              findingWhere(function (f) { return f.field === "last modification time"; });
+  var dv = dateF ? normalizeDate(dateF.value) : "";
+  if (dv) {
+    el("f-docdate").value = dv;
+    setOrigin("f-docdate", "Read from " + dateF.source + ", field " + dateF.field + ".", true, dateF.source);
+    filled++;
+  } else if (STATE.file.lastModified) {
+    var lm = new Date(STATE.file.lastModified);
+    el("f-docdate").value = lm.getFullYear() + "-" + ("0" + (lm.getMonth() + 1)).slice(-2) + "-" + ("0" + lm.getDate()).slice(-2);
+    setOrigin("f-docdate", "No date field in the file. Filled from the file system modification time, which changes on copy. Verify it.", true, "filesystem");
+    filled++;
+  } else {
+    setOrigin("f-docdate", "No date found in the file or the file system. Supply it.", false, "");
+  }
+
+  /* 3. Review date. Today is a default, not a derivation, and says so. */
+  el("f-revdate").value = todayValue();
+  setOrigin("f-revdate", "Defaulted to today. This is a default, not a value read from the file. Change it if the review happened on another date.", true, "default");
+  filled++;
+
+  /* 4. GenAI tool. Prefilled only when the file itself declares a generator
+     alongside an explicit generative source type. Otherwise candidates only. */
+  var aiPresent = STATE.findings.some(function (f) { return f.aiSignal; });
+  var genF = findingWhere(function (f) { return /claim_generator/.test(f.field); });
+  var customAi = findingWhere(function (f) {
+    return /gen\s*ai|ai tool|llm|copilot|chatgpt|assistant/i.test(f.field) && f.source.indexOf("custom.xml") !== -1;
+  });
+
+  var candidates = [];
+  function pushCandidate(v) {
+    v = String(v).replace(/\s+/g, " ").trim();
+    if (v && v.length < 120 && candidates.indexOf(v) === -1) candidates.push(v);
+  }
+  if (genF) {
+    var cg = /"claim_generator"\s*:\s*"([^"]+)"/.exec(genF.value);
+    pushCandidate(cg ? cg[1] : genF.value.slice(0, 100));
+  }
+  if (customAi) pushCandidate(customAi.value);
+  findingsWhere(function (f) {
+    return f.field === "Software" || f.field === "xmp:CreatorTool" || f.field === "Application" ||
+           f.field === "/Producer" || f.field === "/Creator" || f.field === "GenAI:Provider";
+  }).forEach(function (f) { pushCandidate(f.value); });
+
+  var dl = el("toolcandidates");
+  dl.innerHTML = candidates.map(function (c) { return '<option value="' + esc(c) + '"></option>'; }).join("");
+
+  if (aiPresent && (genF || customAi)) {
+    var pick = customAi ? customAi.value : candidates[0];
+    el("f-tool").value = pick;
+    setOrigin("f-tool", "Read from " + (customAi ? customAi.source + ", property " + customAi.field : genF.source + ", claim generator") +
+      ", alongside an explicit generative source type in the same file. Confirm it names the tool you used.", true,
+      customAi ? customAi.source : genF.source);
+    filled++;
+  } else if (candidates.length) {
+    setOrigin("f-tool", "Not derived. " + candidates.length + " software name(s) found in the file are offered as suggestions in this field. " +
+      "A software field records what wrote the file, not what generated its content, so LINEAGE will not fill this for you.", false, "");
+  } else {
+    setOrigin("f-tool", "No software or generator name found in the file. Supply it if the scope is anything other than none.", false, "");
+  }
+
+  /* Names found in the file, offered to the reviewer and operator fields as
+     suggestions only. Neither field is prefilled. An author is not a reviewer. */
+  var names = [];
+  findingsWhere(function (f) { return f.category === "authorship"; }).forEach(function (f) {
+    String(f.value).split(/,\s(?=[A-Z0-9])|;\s*/).forEach(function (n) {
+      n = n.replace(/^\d+\sdistinct:\s*/, "").trim();
+      if (n && n.length < 60 && names.indexOf(n) === -1) names.push(n);
+    });
+  });
+  el("namecandidates").innerHTML = names.map(function (n) { return '<option value="' + esc(n) + '"></option>'; }).join("");
+  el("o-reviewer").textContent = names.length
+    ? "Not derivable. " + names.length + " name(s) found in the file are offered as suggestions. An author or last-modified-by field names who edited the file, not who reviewed the output."
+    : "Not derivable. No name field in the file, and an author field would name who edited the file rather than who reviewed the output.";
+
+  el("derivedcount").textContent = filled + " of " + total + " filled";
+  el("attestprefill").textContent = names.length
+    ? "Operator name is set in Module 2. " + names.length + " name(s) from the file are offered there as suggestions."
+    : "Operator name is set in Module 2 and is recorded as self-asserted.";
+  updateDeriveSummary();
+}
+
+function updateDeriveSummary() {
+  var derivedIds = ["f-title", "f-docdate", "f-revdate", "f-tool"];
+  var d = 0, o = 0;
+  for (var i = 0; i < derivedIds.length; i++) {
+    var rec = ORIGIN[derivedIds[i]];
+    if (!rec) continue;
+    if (rec.source === "operator") o++;
+    else if (rec.derived) d++;
+  }
+  el("derivesummary").innerHTML =
+    "<strong>" + d + " field(s) filled from the file" + (o ? ", " + o + " overridden by you" : "") + ". 4 field(s) plus the confirmation only you can supply.</strong><br>" +
+    "LINEAGE fills a field only where the document states the value itself. Contribution scope, portion affected, reviewer, and the accuracy confirmation are claims about human conduct. " +
+    "A tool prefilling those would be manufacturing the assertion the annotation exists to make.";
+}
+
+["f-title", "f-docdate", "f-revdate", "f-tool"].forEach(function (id) {
+  var node = el(id);
+  node.addEventListener("input", function () { markEdited(id); });
+  node.addEventListener("change", function () { markEdited(id); });
+});
+
+/* ============================================================
+   Module 2, Label
+   ============================================================ */
+el("labelform").addEventListener("submit", function (ev) {
+  ev.preventDefault();
+  var scope = el("f-scope").value;
+  var st = el("labelstatus");
+  if (scope === "none") {
+    STATE.label = "";
+    el("labelout").hidden = true;
+    st.textContent = "No annotation generated. Contribution scope is none, and LINEAGE does not generate a statement asserting no AI use. A negative assertion is a claim this tool has no basis to make.";
+    return;
+  }
+  var need = [
+    ["f-title", "document title"], ["f-docdate", "document date"], ["f-tool", "GenAI tool and version"],
+    ["f-portion", "portion affected"], ["f-reviewer", "human reviewer"], ["f-revdate", "review date"]
+  ];
+  var missing = [];
+  for (var i = 0; i < need.length; i++) if (!el(need[i][0]).value.trim()) missing.push(need[i][1]);
+  if (!el("f-verify").checked) missing.push("verification statement");
+  if (missing.length) {
+    st.textContent = "Complete these fields first: " + missing.join(", ") + ".";
+    for (var mi = 0; mi < need.length; mi++) if (!el(need[mi][0]).value.trim()) { el(need[mi][0]).focus(); break; }
+    return;
+  }
+  STATE.label =
+    "GENERATIVE AI USE ANNOTATION\n" +
+    "Per NAVMC 5239.1 of 4 Dec 24, paragraph 4.b.(5).\n\n" +
+    "1. Document: " + el("f-title").value.trim() + "\n" +
+    "2. Document date: " + el("f-docdate").value + "\n" +
+    "3. GenAI tool employed: " + el("f-tool").value.trim() + "\n" +
+    "4. Scope of contribution: " + scope + "\n" +
+    "5. Portion affected: " + el("f-portion").value.trim() + "\n" +
+    "6. Outputs reviewed for accuracy and suitability prior to use by: " + el("f-reviewer").value.trim() + "\n" +
+    "7. Review date: " + el("f-revdate").value + "\n" +
+    "8. Responsibility for this product and any decisions made with its\n" +
+    "   assistance rests with the reviewing official named at line 6.\n\n" +
+    "Signature: ______________________________  Date: ______________\n";
+  el("labeltext").textContent = STATE.label;
+  el("labelfallback").value = STATE.label;
+  el("labelout").hidden = false;
+  st.textContent = "Annotation generated from your inputs. LINEAGE asserted nothing on its own.";
+});
+
+/* ============================================================
+   Module 3, Attest
+   ============================================================ */
+function localIso() {
+  var d = new Date();
+  function p(n, w) { return ("0000" + n).slice(-(w || 2)); }
+  var off = -d.getTimezoneOffset();
+  var sign = off >= 0 ? "+" : "-";
+  var oh = p(Math.floor(Math.abs(off) / 60)), om = p(Math.abs(off) % 60);
+  var local = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" +
+    p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) + sign + oh + ":" + om;
+  return local + " (" + d.toISOString().replace(/\.\d+Z$/, "Z") + ")";
+}
+el("genattest").addEventListener("click", function () {
+  if (!STATE.file) return;
+  var lines = [];
+  lines.push("LINEAGE INSPECTION ATTESTATION");
+  lines.push("Tool version: " + VERSION);
+  lines.push("Inspection timestamp: " + localIso());
+  lines.push("Operator: " + (el("f-operator").value.trim() || "(not supplied)"));
+  lines.push("");
+  lines.push("File: " + STATE.file.name);
+  lines.push("Size: " + STATE.file.size + " bytes");
+  lines.push("SHA-256: " + STATE.sha256);
+  lines.push("Digest computed by: " + STATE.hashImpl);
+  lines.push("Detected format: " + STATE.format);
+  lines.push("");
+  lines.push("PROVENANCE FINDINGS: " + STATE.findings.length);
+  for (var i = 0; i < STATE.findings.length; i++) {
+    var f = STATE.findings[i];
+    var v = f.value.replace(/\s+/g, " ");
+    if (v.length > 300) v = v.slice(0, 300) + " [truncated]";
+    lines.push("  [" + f.category + "]" + (f.aiSignal ? "[AI SIGNAL]" : "") + " " + f.source + " :: " + f.field + " = " + v);
+  }
+  if (STATE.findings.length === 0) lines.push("  (none)");
+  lines.push("");
+  lines.push("CAPABILITY LIMITS ENCOUNTERED: " + STATE.limits.length);
+  for (var L = 0; L < STATE.limits.length; L++) lines.push("  " + STATE.limits[L]);
+  if (STATE.limits.length === 0) lines.push("  (none)");
+  lines.push("");
+  lines.push("GENERATIVE AI USE ANNOTATION: " + (STATE.label ? "attached" : "not applicable"));
+  if (STATE.label) {
+    lines.push("");
+    lines.push(STATE.label.replace(/\n$/, ""));
+    lines.push("");
+    lines.push("ANNOTATION FIELD PROVENANCE");
+    var prov = [
+      ["Document title", "f-title"], ["Document date", "f-docdate"], ["Review date", "f-revdate"],
+      ["GenAI tool", "f-tool"]
+    ];
+    for (var pi = 0; pi < prov.length; pi++) {
+      var rec = ORIGIN[prov[pi][1]];
+      var origin = !rec ? "operator entered"
+        : rec.source === "operator" ? "operator entered, overriding a derived value"
+        : rec.source === "default" ? "tool default, not read from the file"
+        : rec.source === "filename" ? "derived from the file name, which is operator supplied"
+        : rec.source === "filesystem" ? "derived from the file system timestamp, not from file metadata"
+        : rec.derived ? "read from " + rec.source
+        : "operator entered";
+      lines.push("  " + prov[pi][0] + ": " + origin);
+    }
+    lines.push("  Contribution scope: operator entered, not derivable by this tool");
+    lines.push("  Portion affected: operator entered, not derivable by this tool");
+    lines.push("  Reviewer: operator entered, not derivable by this tool");
+    lines.push("  Accuracy confirmation: operator checkbox, a human act this tool cannot verify");
+  }
+  lines.push("");
+  lines.push("This tool performs read-only inspection. It does not validate");
+  lines.push("cryptographic signatures and does not modify the inspected file.");
+  lines.push("Absence of findings is not evidence of absence of AI involvement.");
+  lines.push("Capability limits listed above mark data this tool could not read,");
+  lines.push("which is not the same as data being absent from the file.");
+  lines.push("Operator identity above is self-asserted and unverified by this tool.");
+
+  var out = lines.join("\n") + "\n";
+  el("attesttext").textContent = out;
+  el("attestfallback").value = out;
+  el("attestout").hidden = false;
+  el("atteststatus").textContent = "Attestation generated. Copy it, or print it, and file it with the record.";
+});
+
+/* ============================================================
+   Clipboard delivery, with a selectable fallback.
+   No download, no file write, per section 8.4.
+   ============================================================ */
+async function copyText(text, statusEl, fallbackEl) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      statusEl.textContent = "Copied to clipboard.";
+      return;
+    }
+  } catch (e) { /* fall through to manual selection */ }
+  try {
+    fallbackEl.hidden = false;
+    fallbackEl.focus();
+    fallbackEl.select();
+    var ok = document.execCommand && document.execCommand("copy");
+    statusEl.textContent = ok
+      ? "Copied to clipboard using the fallback path."
+      : "Clipboard access is blocked in this browser. The text is selected below, copy it manually.";
+  } catch (e2) {
+    statusEl.textContent = "Clipboard access is blocked. Select the text below and copy it manually.";
+  }
+}
+el("copylabel").addEventListener("click", function () {
+  copyText(STATE.label, el("labelstatus"), el("labelfallback"));
+});
+el("copyattest").addEventListener("click", function () {
+  copyText(el("attesttext").textContent, el("atteststatus"), el("attestfallback"));
+});
+el("printattest").addEventListener("click", function () { window.print(); });
+
+/* ============================================================
+   Input wiring
+   ============================================================ */
+var drop = el("drop");
+["dragenter", "dragover"].forEach(function (t) {
+  drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("hot"); });
+});
+["dragleave", "drop"].forEach(function (t) {
+  drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("hot"); });
+});
+drop.addEventListener("drop", function (e) {
+  e.preventDefault();
+  var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) inspect(f).catch(reportFailure);
+});
+el("picker").addEventListener("change", function (e) {
+  var f = e.target.files && e.target.files[0];
+  if (f) inspect(f).catch(reportFailure);
+});
+function reportFailure(err) {
+  setStatus("Inspection failed: " + (err && err.message ? err.message : String(err)) +
+    ". Nothing was written and nothing was sent anywhere.");
+}
+
+/* Theme. Default dark, per the Semper design principles. State lives in a
+   variable and dies with the tab, because constraint 3 forbids storage. */
+var darkTheme = true;
+el("themetoggle").addEventListener("click", function () {
+  darkTheme = !darkTheme;
+  document.documentElement.classList.toggle("dark", darkTheme);
+  this.textContent = darkTheme ? "Light theme" : "Dark theme";
+  this.setAttribute("aria-pressed", darkTheme ? "true" : "false");
+});
+
+/* Environment note in the footer. Honest about what this build has. */
+var envBits = [];
+envBits.push(inflationAvailable() ? "Inflation available, compressed parts are readable." : "DecompressionStream absent, compressed parts will be reported as unreadable rather than absent.");
+envBits.push((typeof crypto !== "undefined" && crypto && crypto.subtle) ? "crypto.subtle available." : "crypto.subtle absent, the in-page SHA-256 will be used.");
+envBits.push(location.protocol === "file:" ? "Running from a local file path." : "Running from " + location.protocol);
+el("envline").textContent = envBits.join(" ");
+
+})();
+</script>
+</body>
+</html>

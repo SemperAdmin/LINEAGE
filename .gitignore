@@ -1,0 +1,18 @@
+# Generated test fixtures. Rebuild with test-kit/make_fixtures.py.
+test-kit/fixtures/
+
+# The 200 MB acceptance fixture is generated, never stored.
+*.bin
+
+# Node
+node_modules/
+package-lock.json
+package.json
+
+# Harness output
+*.log
+harness_*.txt
+
+# OS
+.DS_Store
+Thumbs.db
