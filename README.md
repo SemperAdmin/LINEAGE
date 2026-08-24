@@ -6,34 +6,56 @@ LINEAGE opens a file in your browser, parses the metadata the file already carri
 
 It reads. It never writes to your file, never uploads it, and never stores anything.
 
+## Why this exists
+
+NAVMC 5239.1 puts the labelling duty on the person, not on a tool. Paragraph 4.b.(5) requires a label on any document created, in whole or in part, with output from a generative AI tool, and paragraph 4.b.(4) puts responsibility for the product on whoever used one.
+
+Labelling a document honestly means knowing what it already declares about its own origin. That data sits in structures no ordinary application surfaces: EXIF and XMP in images, C2PA content credentials, Office document properties, tracked changes and comment authors, PDF information dictionaries, and invisible characters inside plain text. Word does not show it. Acrobat does not show it. A photo viewer does not show it.
+
+The usual way to see it is to upload the document to an online metadata reader, which is the wrong trade for anything heading to a record folder.
+
+LINEAGE reads the file in the browser, on the machine, with no network. Then it stops short of the line a tool should not cross.
+
+**It will not decide whether AI wrote a passage.** No metadata field records that. A tool inferring it would manufacture the very assertion the annotation exists to make. Contribution scope, portion affected, reviewer, and the accuracy confirmation stay with the operator, and the attestation records that they came from a person rather than from the file.
+
+**It will not report a quiet result as a clean one.** Zero findings with zero limits means clean. Zero findings with limits recorded means unknown. Everything the parse was unable to read is listed by name, because unread is not the same as absent.
+
+**It will not vouch for a content credential.** A C2PA manifest is reported as present and never validated, and the attestation says so.
+
 ## Current build
 
 | Field | Value |
 | --- | --- |
-| Version | `1.1.0-rc2` |
-| File | `lineage.html` |
-| Size | 112,502 bytes |
-| SHA-256 | `B0011F8BFAA7CD600E5AF1687C1B3F1AC5B80E98E5C9FF15288B5C7B298CAAB2` |
+| Version | `1.1.0-rc3` |
+| File | `index.html` |
+| Size | 119,426 bytes |
+| SHA-256 | `5D5A25BE0AE955C268461215031355FAF146F24D87DF335D615FB87A4BA1AD39` |
 | Acceptance suite | 155 checks, 155 passed |
 
 Verify what you downloaded before you trust it:
 
 ```
-sha256sum lineage.html                      # Linux, macOS
-Get-FileHash lineage.html -Algorithm SHA256 # Windows PowerShell
+sha256sum index.html                      # Linux, macOS
+Get-FileHash index.html -Algorithm SHA256 # Windows PowerShell
 ```
 
 A digest that does not match the table means the file is not this build. Do not use it for a record.
 
 ## Use
 
-Download `lineage.html` and open it. That is the whole installation. It runs from a `file://` path with no server and no internet connection.
+Download `index.html` and open it. That is the whole installation. It runs from a `file://` path with no server and no internet connection.
 
 Three modules on one page:
 
 1. **Inspect.** Format detected by magic bytes, never by file extension. Hand-written parsers for JPEG, PNG, Office Open XML, PDF, and plain text. Findings are grouped by category, and every capability limit hit during the parse is reported separately.
 2. **Label.** Fills what the document declares about itself, names the source of each filled value, and leaves empty every field describing human conduct.
 3. **Attest.** SHA-256 over the input, the findings, the limits, the annotation, the field provenance, and a mandatory disclaimer. Delivered to the clipboard or to print. No file is written.
+
+## Hosted copy
+
+The tool is served at **https://semperadmin.github.io/LINEAGE/** for trying it without downloading anything. The page still makes no network request of its own once loaded, and still stores nothing.
+
+For anything going into a record, use a downloaded copy whose digest you have checked. The hosted page arrives over the network, so what you ran is whatever the host served at that moment. A local file whose SHA-256 you verified against the table above is the defensible artifact, and the attestation is only as good as the provenance of the tool that produced it.
 
 ## Two rules the tool will not bend
 
@@ -85,14 +107,41 @@ Session working notes are kept out of this repository on purpose. Where the docu
 
 ## Status
 
-`1.1.0-rc2` is a release candidate. Four specification decisions are owed by the sponsor before the version moves, and they are listed in the audit disposition. Verification does not promote a build.
+`1.1.0-rc3` is a release candidate. Four specification decisions are owed by the sponsor before the version moves, and they are listed in the audit disposition. Verification does not promote a build.
 
 ## Authority
 
-- NAVMC 5239.1, United States Marine Corps Guidance on Generative Artificial Intelligence, 4 December 2024.
-- MARADMIN 635/24 reissued the COMMSTRAT guiding principles on 30 December 2024 and carries the annotation requirement forward verbatim, including the metadata clause. It replaced MARADMIN 602/24, which was cancelled the same day. Cite 635/24.
+Paragraph text is summarised rather than quoted, except where noted. Confirm every citation against the source before it goes into anything signed.
 
-LINEAGE contains no model, performs no inference, and holds no training data. It is a deterministic byte parser.
+### NAVMC 5239.1, United States Marine Corps Guidance on Generative Artificial Intelligence, 4 December 2024
+
+[Publication page](https://www.marines.mil/News/Publications/MCPEL/Electronic-Library-Display/Article/4013464/navmc-52391/)
+
+| Paragraph | Summary |
+| --- | --- |
+| 4.a.(2) | Users are able to readily determine which systems rely on generative AI, and to accept or reject the output |
+| 4.a.(7) | Provide transparency and explainability for model outputs as required, including data lineage, documentation on model training data, and specification of which components leverage generative AI |
+| 4.b.(4) | Users are responsible for products and decisions made with the assistance of generative AI, and should distrust and verify all outputs prior to use |
+| 4.b.(5) | Users label any document created, in whole or in part, with outputs from generative AI tools. This is the requirement Module 2 formats |
+
+### MARADMIN 635/24, Guiding Principles for the Ethical Use of Artificial Intelligence by Communication Strategy and Operations
+
+Date-time group R 301807Z DEC 24, released 30 December 2024. [Message](https://www.marines.mil/News/Messages/Messages-Display/Article/4018332/guiding-principles-for-the-ethical-use-of-artificial-intelligence-by-communicat/)
+
+The operative sentence, quoted because the exact wording matters: "Products adjusted with AI will annotate that adjustment in both caption and metadata (e.g., basic correction of color done with AI)."
+
+The duty reaches metadata, not the caption alone. That is the half LINEAGE reads.
+
+**Cite 635/24, not 602/24.** [MARADMIN 602/24](https://www.marines.mil/News/Messages/Messages-Display/Article/4001021/guiding-principles-for-the-ethical-use-of-artificial-intelligence-by-communicat/) carried the identical title and is marked cancelled at its source. The [cancellation](https://www.marines.mil/News/Messages/Messages-Display/Article/4018003/cancellation-of-maradmin-60224/) carries date-time group R 301748Z DEC 24, nineteen minutes before 635/24 was released.
+
+Two caveats a careful reader should have:
+
+1. **635/24 declares no supersession of its own.** The reissue relationship rests on the identical title, the nineteen-minute gap, and the carried-forward text, not on any statement inside the message.
+2. **The cancellation message displays under the identifier MARADMIN 028/24** while carrying a December date-time group. That inconsistency is in the source page. Confirm the number against the official MARADMIN index before citing it in a signed document.
+
+### Scope
+
+LINEAGE contains no model, performs no inference, and holds no training data. It is a deterministic byte parser. The position taken here is that the AI tool tracking requirement in paragraph 4.c.(6) does not attach to a tool containing no model. That determination rests with the fielding command rather than with this repository.
 
 ## Licence
 

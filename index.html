@@ -476,6 +476,42 @@ textarea.fallback {
 .status { font-size: var(--text-sm); color: var(--color-muted-foreground); min-height: 1.4em; }
 .note { font-size: var(--text-sm); color: var(--color-muted-foreground); max-width: 76ch; }
 
+/* ---- Why and Authority --------------------------------------------------- */
+.why h3:first-of-type { margin-top: var(--sp-4); }
+.why ul { margin: var(--sp-2) 0 0; padding-left: var(--sp-5); }
+.why li { margin: var(--sp-2) 0; max-width: 76ch; }
+dl.refs { margin: 0; }
+dl.refs dt {
+  font: 700 var(--text-base)/1.45 var(--font-body);
+  margin-top: var(--sp-5); max-width: 76ch;
+}
+dl.refs dt:first-of-type { margin-top: 0; }
+dl.refs dd {
+  margin: var(--sp-2) 0 0 0;
+  padding-left: var(--sp-4);
+  border-left: 2px solid var(--color-border-strong);
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+  max-width: 76ch;
+}
+dl.refs dd .para {
+  font: 700 var(--text-sm)/1.5 var(--font-mono);
+  color: var(--color-accent-text);
+  margin-right: var(--sp-2);
+}
+
+.why-more { margin-top: var(--sp-2); }
+.why-more > summary {
+  cursor: pointer; list-style: none; display: inline-block;
+  font: 700 var(--text-sm)/1.4 var(--font-body);
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--color-primary-text);
+  padding: var(--sp-2) 0;
+}
+.why-more > summary::-webkit-details-marker { display: none; }
+.why-more > summary::before { content: "+"; font-family: var(--font-mono); margin-right: var(--sp-2); }
+.why-more[open] > summary::before { content: "\2013"; }
+
 /* ---- Footer -------------------------------------------------------------- */
 footer.site {
   border-top: 1px solid var(--color-border);
@@ -535,6 +571,37 @@ footer.site {
   <h1><span class="gradient-accent">Provenance</span><br>Inspection</h1>
   <p class="lede">LINEAGE reads a document and reports what it already says about its own origin. Read-only. Nothing is uploaded, nothing is stored, nothing in your file is changed.</p>
 </header>
+
+<section class="panel noprint" id="why">
+  <h2 class="panel-title"><span class="num">Context</span>Why this exists</h2>
+  <p class="panel-note">NAVMC 5239.1 puts the labelling duty on you, not on a tool. Labelling a document honestly means knowing what it already declares about its own origin, and none of that is visible in Word, in Acrobat, or in a photo viewer.</p>
+
+  <details class="why-more">
+    <summary>The full reasoning</summary>
+    <div class="why">
+    <h3>The problem</h3>
+    <ul>
+      <li>Paragraph 4.b.(5) requires a label on any document created, in whole or in part, with output from a generative AI tool. Paragraph 4.b.(4) puts responsibility for the product on the person who used one.</li>
+      <li>Documents carry origin data in structures no ordinary application surfaces. EXIF and XMP in images, C2PA content credentials, Office document properties, tracked changes and comment authors, PDF information dictionaries, and invisible characters sitting inside plain text.</li>
+      <li>Uploading a document to an online metadata reader to find out what is in it is the wrong trade for anything heading to a record folder.</li>
+    </ul>
+
+    <h3>What this does about it</h3>
+    <ul>
+      <li>Reads the file inside this browser tab, on this machine. No upload, no network request, no stored state. The input is re-hashed after the parse and compared to the digest taken at load, so the read-only claim is demonstrated rather than asserted.</li>
+      <li>Reports what the document declares, next to a named list of everything the parse was unable to read.</li>
+      <li>Formats the annotation from your inputs and anchors the whole inspection to a SHA-256 of the file.</li>
+    </ul>
+
+    <h3>What it refuses to do</h3>
+    <ul>
+      <li><strong>Decide whether AI wrote a passage.</strong> No metadata field records it. A tool inferring it would manufacture the very assertion the annotation exists to make. Contribution scope, portion affected, reviewer, and the accuracy confirmation stay yours, and the attestation records that they came from you.</li>
+      <li><strong>Report a quiet result as a clean one.</strong> Zero findings with zero limits means clean. Zero findings with limits recorded means unknown. Unread is not the same as absent, and both the interface and the attestation say which one you got.</li>
+      <li><strong>Vouch for a content credential.</strong> A C2PA manifest is reported as present and never validated, and the attestation states so. A signed manifest is also a provenance signal rather than an AI signal, because Leica, Nikon, Sony, and Canon sign ordinary camera captures with one.</li>
+    </ul>
+    </div>
+  </details>
+</section>
 
 <section class="panel noprint" id="panel1">
   <h2 class="panel-title"><span class="num">Module 1</span>Inspect</h2>
@@ -667,6 +734,26 @@ footer.site {
   </div>
 </section>
 
+<section class="panel noprint" id="authority">
+  <h2 class="panel-title"><span class="num">Authority</span>References</h2>
+  <p class="panel-note">Paragraph text below is summarised rather than quoted. Confirm every citation against the source document before it goes into anything signed.</p>
+
+  <dl class="refs">
+    <dt>NAVMC 5239.1, United States Marine Corps Guidance on Generative Artificial Intelligence, 4 December 2024</dt>
+    <dd><span class="para">4.a.(2)</span>Users are able to readily determine which systems rely on generative AI, and to accept or reject the output.</dd>
+    <dd><span class="para">4.a.(7)</span>Provide transparency and explainability for model outputs as required, including data lineage, documentation on model training data, and specification of which components leverage generative AI.</dd>
+    <dd><span class="para">4.b.(4)</span>Users are responsible for products and decisions made with the assistance of generative AI, and should distrust and verify all outputs prior to use. Module 2 will not pre-check the confirmation of this on your behalf.</dd>
+    <dd><span class="para">4.b.(5)</span>Users label any document created, in whole or in part, with outputs from generative AI tools. This is the requirement Module 2 formats.</dd>
+
+    <dt>MARADMIN 635/24, Guiding Principles for the Ethical Use of Artificial Intelligence by Communication Strategy and Operations, R 301807Z DEC 24, released 30 December 2024</dt>
+    <dd><span class="para">Annotation</span>Quoted, because the exact wording is the operative requirement. Products adjusted with AI will annotate that adjustment in both caption and metadata, for example basic correction of color done with AI. The duty reaches metadata, not the caption alone, which is the part LINEAGE reads.</dd>
+    <dd><span class="para">Cite 635/24</span>MARADMIN 602/24 carried the identical title and is marked cancelled at its source. The cancellation carries date-time group R 301748Z DEC 24, nineteen minutes before 635/24 was released. Note that 635/24 declares no supersession of its own, so the reissue relationship rests on the identical title, the nineteen-minute gap, and the carried-forward text rather than on any statement inside the message.</dd>
+    <dd><span class="para">Caution</span>The cancellation message displays under the identifier MARADMIN 028/24 while carrying a December date-time group, an inconsistency in the source page itself. Confirm the number against the official MARADMIN index before putting it in a signed document.</dd>
+  </dl>
+
+  <p class="note" style="margin-top:var(--sp-5)">LINEAGE contains no model, performs no inference, and holds no training data. It is a deterministic byte parser. The position taken here is that the AI tool tracking requirement in paragraph 4.c.(6) does not attach to a tool containing no model, and that determination rests with your command rather than with this page.</p>
+</section>
+
 <footer class="site">
   <p>LINEAGE version <span id="verlabel"></span>. Document provenance inspection. Read-only, no network request, no stored state. The inspected file is never modified, never uploaded, and never written back. Absence of findings is not evidence of absence of AI involvement.</p>
   <p id="envline" class="note"></p>
@@ -677,7 +764,7 @@ footer.site {
 "use strict";
 (function () {
 
-var VERSION = "1.1.0-rc2";
+var VERSION = "1.1.0-rc3";
 document.getElementById("verlabel").textContent = VERSION;
 
 /* ============================================================

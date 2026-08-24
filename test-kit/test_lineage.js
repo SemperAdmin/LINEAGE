@@ -4,7 +4,7 @@ const fs = require('fs');
 
 // Paths resolve from this file's location so the suite runs from a clone.
 // Override with LINEAGE_HTML and LINEAGE_FIXTURES if your layout differs.
-const HTML = process.env.LINEAGE_HTML || path.resolve(__dirname, '..', 'lineage.html');
+const HTML = process.env.LINEAGE_HTML || path.resolve(__dirname, '..', 'index.html');
 const FIXDIR = process.env.LINEAGE_FIXTURES || path.resolve(__dirname, 'fixtures');
 const PAGE = 'file://' + HTML;
 const FIX = (n) => path.resolve(FIXDIR, n);
