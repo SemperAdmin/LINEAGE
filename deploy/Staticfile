@@ -1,0 +1,9 @@
+# cloud.gov staticfile buildpack configuration for LINEAGE.
+#
+# root must be a subdirectory: location_include is only honoured when the
+# document root differs from the app root.
+root: public
+location_include: includes/*.conf
+force_https: true
+http_strict_transport_security: true
+enable_http2: true
