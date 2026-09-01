@@ -1,0 +1,3 @@
+# index.html is digest-verified (see README and deploy/prepare.py).
+# Never rewrite its line endings on checkout, on any platform.
+index.html -text
