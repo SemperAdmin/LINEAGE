@@ -1,0 +1,92 @@
+# Deploy to cloud.gov, on Linux.
+#
+# Modeled on SemperAdmin/semperscribe's deploy-cloudgov.yml. Same shape for
+# every Semper Admin app: prove the bundle, push with a space-deployer
+# service account, smoke-test the live route. deploy/prepare.py stages
+# index.html into deploy/public and refuses a file whose sha256 differs from
+# the published digest, so that is the gate here.
+#
+# workflow_dispatch only, not a push trigger: a deploy to a government
+# sandbox is an explicit act, not a side effect of merging to main.
+#
+# CREDENTIALS. CF_USERNAME / CF_PASSWORD are a cloud.gov space-deployer
+# service account, never an SSO user (service accounts have no MFA prompt,
+# so they are the only credential CI can use unattended). One account can
+# serve every repo: store the pair as organization secrets on SemperAdmin,
+# or per repo under Settings > Secrets and variables > Actions. To mint one:
+#   cf create-service cloud-gov-service-account space-deployer <name>
+#   cf create-service-key <name> github-actions
+#   cf service-key <name> github-actions
+# The sandbox purge (90 days) deletes the account; mint again afterwards.
+name: Deploy to cloud.gov
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudgov
+  cancel-in-progress: false
+
+env:
+  CF_API: https://api.fr.cloud.gov
+  CF_ORG: sandbox-usmc
+  CF_SPACE: stephen.shorter
+  APP_ROUTE: https://lineage.app.cloud.gov/
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: cloudgov
+      url: https://lineage.app.cloud.gov/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # Stages ../index.html into deploy/public and checks its digest.
+      - name: Stage and verify index.html
+        working-directory: deploy
+        run: python3 prepare.py
+
+      - name: Prove the bundle
+        working-directory: deploy
+        run: |
+          test -f public/index.html || { echo "::error::deploy/public/index.html missing after prepare.py"; exit 1; }
+          test -f manifest.yml || { echo "::error::deploy/manifest.yml missing"; exit 1; }
+          test -f Staticfile || { echo "::error::deploy/Staticfile missing"; exit 1; }
+
+      # Official apt repo, no third-party action: one less supply-chain hop
+      # ahead of the step that hands this runner production credentials.
+      - name: Install cf CLI
+        run: |
+          curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo gpg --dearmor -o /usr/share/keyrings/cloudfoundry-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry.list
+          sudo apt-get update && sudo apt-get install --yes cf8-cli
+          cf version
+
+      - name: Push
+        working-directory: deploy
+        env:
+          CF_USERNAME: ${{ secrets.CF_USERNAME }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD }}
+        run: |
+          cf api "$CF_API"
+          cf auth "$CF_USERNAME" "$CF_PASSWORD"
+          cf target -o "$CF_ORG" -s "$CF_SPACE"
+          cf push
+
+      - name: Post-deploy smoke
+        run: |
+          code=$(curl -sS -o /tmp/live.html -w '%{http_code}' "$APP_ROUTE")
+          [ "$code" = "200" ] || { echo "::error::$APP_ROUTE returned HTTP $code"; exit 1; }
+          grep -qi '<html' /tmp/live.html || { echo "::error::$APP_ROUTE body carries no <html>"; exit 1; }
+          curl -sSI "$APP_ROUTE" | grep -qi '^strict-transport-security:' || echo "::warning::No Strict-Transport-Security header on $APP_ROUTE"
