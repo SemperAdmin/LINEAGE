@@ -39,4 +39,14 @@ if got != EXPECTED:
 os.makedirs(dst_dir, exist_ok=True)
 shutil.copy2(src, dst)
 print("\nstaged   %s" % os.path.abspath(dst))
+
+# Extra files in static/ (robots.txt) are served from the same web root. They
+# are not part of the verified build and are not linked from it.
+static_dir = os.path.join(here, "static")
+for name in sorted(os.listdir(static_dir)):
+    path = os.path.join(static_dir, name)
+    if os.path.isfile(path):
+        shutil.copy2(path, os.path.join(dst_dir, name))
+        print("staged   %s" % os.path.abspath(os.path.join(dst_dir, name)))
+
 print("digest matches the published build. Ready for cf push.")
