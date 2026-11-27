@@ -1,0 +1,68 @@
+# Publish LINEAGE to GitHub Pages: the verified tool page and nothing else.
+#
+# Pages used to publish the whole repository root, which also served the
+# working notes under docs/ and the test kit as public web pages. This
+# workflow publishes only index.html, and only after deploy/prepare.py has
+# checked its SHA-256 against the published build, the same gate the
+# cloud.gov deploy uses. A page whose digest does not match is never
+# published.
+#
+# Requires the repository's Pages source to be "GitHub Actions"
+# (Settings > Pages > Build and deployment).
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Stage the verified page (refuses on a digest mismatch)
+        working-directory: deploy
+        run: python3 prepare.py
+
+      - name: Assemble the site from the verified page only
+        run: |
+          mkdir -p _site
+          cp deploy/public/index.html _site/index.html
+          touch _site/.nojekyll
+          ls -la _site
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5

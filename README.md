@@ -71,7 +71,7 @@ The suite has two known gaps: it never exercises the hand-written SHA-256 fallba
 | Environment | URL | How |
 |---|---|---|
 | cloud.gov | https://lineage.app.cloud.gov | `deploy/manifest.yml` (staticfile buildpack); `deploy/prepare.py` stages `index.html` and refuses a file whose SHA-256 differs from the published build; manual **Deploy to cloud.gov** workflow. The sandbox is managed by the private cloudgov-redeploy repository. |
-| GitHub Pages | https://semperadmin.github.io/LINEAGE/ | Published from the repository root of `main`. |
+| GitHub Pages | https://semperadmin.github.io/LINEAGE/ | `.github/workflows/pages.yml` on push to `main`. It runs the same digest check (`deploy/prepare.py`) and publishes only the verified `index.html`. |
 
 ## Documentation
 
